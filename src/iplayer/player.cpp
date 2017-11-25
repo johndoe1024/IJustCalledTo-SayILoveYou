@@ -4,29 +4,18 @@
 
 namespace ip {
 
-Player::Player() : stop_(false), play_thread_([&](){PlayThread();}) {
-
-}
+Player::Player() : stop_(false), play_thread_([&]() { PlayThread(); }) {}
 
 void Player::Shutdown() {
   stop_ = true;
   play_thread_.join();
 }
 
-void Player::Play(const TrackLocation& location)
-{
-  TRACE();
-}
+void Player::Play(const TrackLocation& location) { TRACE(); }
 
-void Player::Pause()
-{
-  TRACE();
-}
+void Player::Pause() { TRACE(); }
 
-void Player::Unpause()
-{
-  TRACE();
-}
+void Player::Unpause() { TRACE(); }
 
 void Player::PlayThread() {
   TRACE();

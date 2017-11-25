@@ -2,9 +2,6 @@
 
 namespace ip {
 
-std::string TrackLocation::Uri() const
-{
-  return uri_;
-}
+std::string TrackLocation::Uri() const { return uri_; }
 
 }  // namespace ip

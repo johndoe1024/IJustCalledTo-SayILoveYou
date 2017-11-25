@@ -1,14 +1,15 @@
 #include "iplayer/ui/cli_ui.h"
 
-#include <iostream>
 #include <assert.h>
+#include <iostream>
 
-#include "iplayer/track_location.h"
 #include "iplayer/log.h"
+#include "iplayer/track_location.h"
 
 namespace ip {
 
-Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl) : player_ctl_(std::move(player_ctl)) {}
+Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl)
+    : player_ctl_(std::move(player_ctl)) {}
 
 void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   if (command == "play") {
