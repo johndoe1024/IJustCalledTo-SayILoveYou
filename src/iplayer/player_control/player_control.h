@@ -2,36 +2,42 @@
 
 #include "iplayer/i_player_control.h"
 
-#include <mutex>
 #include <atomic>
+#include <mutex>
 
-#include "iplayer/playlist.h"
 #include "iplayer/player.h"
+#include "iplayer/playlist.h"
 
 namespace ip {
 
 class PlayerControl : public IPlayerControl {
+  enum class Status { kStop, kPause, kPlay };
+
  public:
   PlayerControl();
+  void Exit() override;
 
   void Play() override;
-//  void Pause() override;
-//  void Next() override;
-//  void Previous() override;
-//  void RemoveDuplicateTrack() override;
-//  void SetEnabledRandom(bool enable) override;
-//  void SetEnabledRepeat(bool enable) override;
+  void Pause() override;
+  // void Previous() override;
+  void Next() override;
 
-  void AddTrack(TrackLocation track_location) override;
-  void Shutdown() override;
+  //  void Previous() override;
+  //  void RemoveDuplicateTrack() override;
+  //  void SetEnabledRandom(bool enable) override;
+  //  void SetEnabledRepeat(bool enable) override;
 
-  Playlist* playlist() const;
+  void AddTrack(const TrackLocation& track_location) override;
 
  private:
+  void Unpause();
+  void PlayNextTrack();
+
   std::mutex mutex_;
+  Status status_;
   bool shuffle_mode_;
   bool repeat_mode_;
-  Player player_;
+  std::unique_ptr<Decoder> decoder_;
   Playlist playlist_;
 };
 

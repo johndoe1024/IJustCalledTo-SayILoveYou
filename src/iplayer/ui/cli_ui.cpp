@@ -15,7 +15,10 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   if (command == "play") {
     player_ctl_->Play();
   } else if (command == "add_track") {
-    player_ctl_->AddTrack({parameters});
+    TrackLocation track = parameters;
+    player_ctl_->AddTrack(std::move(parameters));
+  } else if (command == "next") {
+    player_ctl_->Next();
   } else {
     std::cout << "Error: unknown command '" << command << "'" << std::endl;
   }
@@ -23,6 +26,10 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
 
 void Cli::Run() {
   std::cout << "Imaginary player " IPLAYER_VERSION << std::endl;
+
+  Dispatch("add_track", "hello.music");
+  Dispatch("add_track", "world.music");
+
   while (true) {
     std::string input;
     std::cout << ">>> ";
@@ -34,7 +41,7 @@ void Cli::Run() {
     LOG("[D] processing command='%s' with parameters='%s'", command.c_str(),
         parameters.c_str());
     if (command == "exit") {
-      player_ctl_->Shutdown();
+      player_ctl_->Exit();
       return;
     }
     Dispatch(command, parameters);

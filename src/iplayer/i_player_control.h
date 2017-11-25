@@ -1,22 +1,23 @@
 #pragma once
 
+#include "iplayer/track_location.h"
+
 namespace ip {
 
-class TrackLocation;
+class IPlayerControl {
+ public:
+  virtual ~IPlayerControl() {}
 
-class IPlayerControl{
-  public:
-    virtual ~IPlayerControl() {}
-
-    virtual void Play() = 0;
-//    virtual void Pause() = 0;
-//    virtual void Next() = 0;
-//    virtual void Previous() = 0;
-//    virtual void RemoveDuplicateTrack() = 0;
-//    virtual void SetEnabledRandom(bool enable) = 0;
-//    virtual void SetEnabledRepeat(bool enable) = 0;
-    virtual void AddTrack(TrackLocation track_location) = 0;
-    virtual void Shutdown() = 0;
+  virtual void Play() = 0;
+  virtual void Pause() = 0;
+  //    virtual void Previous() = 0;
+  virtual void Next() = 0;
+  //    virtual void Previous() = 0;
+  //    virtual void RemoveDuplicateTrack() = 0;
+  //    virtual void SetEnabledRandom(bool enable) = 0;
+  //    virtual void SetEnabledRepeat(bool enable) = 0;
+  virtual void AddTrack(const TrackLocation& track_location) = 0;
+  virtual void Exit() = 0;
 };
 
-}  // namespace imp
+}  // namespace ip

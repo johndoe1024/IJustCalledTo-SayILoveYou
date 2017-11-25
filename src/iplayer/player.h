@@ -3,28 +3,30 @@
 #include "iplayer/track_location.h"
 
 #include <atomic>
+#include <mutex>
 #include <thread>
 
 namespace ip {
 
-class Playlist;
+class Decoder {
+  enum class Status { kThreadRunning, kThreadPaused, kThreadExited };
 
-class Player{
+ public:
+  Decoder(const TrackLocation& track);
+  virtual ~Decoder();
+  void Exit();
 
-  public:
-    Player();
-    void Shutdown();
+  void Play(const TrackLocation& track);
+  void Pause();
+  void Unpause();
 
-    void Play(const TrackLocation& location);
-    void Pause();
-    void Unpause();
+ private:
+  void DecoderThread(TrackLocation track);
 
-  private:
-    void PlayThread();
-
-    Playlist* playlist_;
-    std::atomic_bool stop_;
-    std::thread play_thread_;
+  std::mutex pause_mutex_;
+  std::atomic<bool> exit_decoder_thread_;
+  Status status_;
+  std::thread decoder_thread_;
 };
 
 }  // namespace imp

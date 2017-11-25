@@ -4,11 +4,11 @@
 
 #include <stdio.h>
 
-// TODO: log are not thread safe
-#define LOG(fmt, ...)                                                      \
-  do {                                                                     \
-    fprintf(stderr, "%s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, \
-            ##__VA_ARGS__);                                                \
+// TODO: LOG/TRACE are not thread safe
+#define LOG(fmt, ...)                                                         \
+  do {                                                                        \
+    fprintf(stderr, fmt " [%s:%d:%s()]\n", ##__VA_ARGS__, __FILE__, __LINE__, \
+            __func__);                                                        \
   } while (0)
 
 #define TRACE() LOG("")
