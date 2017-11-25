@@ -1,4 +1,4 @@
-#include "iplayer/player.h"
+#include "iplayer/decoder.h"
 
 #include <assert.h>
 

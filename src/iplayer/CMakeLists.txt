@@ -7,8 +7,8 @@ add_executable(iplayer
                i_user_interface.h
                log.h
                main.cpp
-               player.h
-               player.cpp
+               decoder.h
+               decoder.cpp
                playlist.h
                playlist.cpp
                track_location.h

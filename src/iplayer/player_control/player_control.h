@@ -5,7 +5,7 @@
 #include <atomic>
 #include <mutex>
 
-#include "iplayer/player.h"
+#include "iplayer/decoder.h"
 #include "iplayer/playlist.h"
 
 namespace ip {
