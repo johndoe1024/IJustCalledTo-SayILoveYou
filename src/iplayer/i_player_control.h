@@ -10,7 +10,8 @@ class IPlayerControl {
 
   virtual void Play() = 0;
   virtual void Pause() = 0;
-  //    virtual void Previous() = 0;
+  virtual void Stop() = 0;
+  virtual void Previous() = 0;
   virtual void Next() = 0;
   //    virtual void Previous() = 0;
   //    virtual void RemoveDuplicateTrack() = 0;

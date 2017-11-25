@@ -2,7 +2,7 @@
 
 namespace ip {
 
-Playlist::Playlist() : next_track_(0) {}
+Playlist::Playlist() : current_track_(0) {}
 
 void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
   // TODO: optimize with rvalue references
@@ -12,19 +12,23 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
             std::back_inserter(playlist_));
 }
 
-TrackLocation Playlist::SelectNextTrack() {
-  return playlist_.at(next_track_++);
+TrackLocation Playlist::AdvanceTrack(int64_t relative_pos) {
+  int64_t pos = current_track_ + relative_pos;
+  if (pos < 0) {
+    current_track_ = 0;
+  } else {
+    current_track_ = static_cast<uint32_t>(pos);
+  }
+  return playlist_.at(current_track_);
 }
 
-TrackLocation Playlist::SelectPreviousTrack() {
-  return playlist_.at(--next_track_ - 1);
+TrackLocation Playlist::SetTrack(TrackId track_id) {
+  current_track_ = track_id;
+  return playlist_.at(current_track_);
 }
 
 TrackLocation Playlist::CurrentTrack() const {
-  if (next_track_ == 0) {
-    return {};
-  }
-  return playlist_.at(next_track_ - 1);
+  return playlist_.at(current_track_);
 }
 
 }  // namespace ip

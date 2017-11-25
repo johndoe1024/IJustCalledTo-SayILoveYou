@@ -13,13 +13,13 @@ class Playlist {
   Playlist();
 
   void AddTrack(const std::vector<TrackLocation>& tracks);
-  TrackLocation SelectNextTrack();
-  TrackLocation SelectPreviousTrack();
+  TrackLocation AdvanceTrack(int64_t relative_pos);
+  TrackLocation SetTrack(TrackId id);
   TrackLocation CurrentTrack() const;
 
  private:
   std::vector<TrackLocation> playlist_;
-  TrackId next_track_;
+  TrackId current_track_;
 };
 
 }  // namespace imp

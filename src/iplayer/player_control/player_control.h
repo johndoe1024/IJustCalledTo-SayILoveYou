@@ -19,7 +19,8 @@ class PlayerControl : public IPlayerControl {
 
   void Play() override;
   void Pause() override;
-  // void Previous() override;
+  void Stop() override;
+  void Previous() override;
   void Next() override;
 
   //  void Previous() override;
@@ -31,7 +32,8 @@ class PlayerControl : public IPlayerControl {
 
  private:
   void Unpause();
-  void PlayNextTrack();
+  void StopImpl();
+  void AdvanceTrack(int64_t pos);
 
   std::mutex mutex_;
   Status status_;

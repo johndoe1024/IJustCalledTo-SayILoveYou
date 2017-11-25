@@ -19,6 +19,10 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     player_ctl_->AddTrack(std::move(parameters));
   } else if (command == "next") {
     player_ctl_->Next();
+  } else if (command == "prev") {
+    player_ctl_->Previous();
+  } else if (command == "stop") {
+    player_ctl_->Stop();
   } else {
     std::cout << "Error: unknown command '" << command << "'" << std::endl;
   }
