@@ -10,12 +10,13 @@ class IPlayerControl {
   virtual void Exit() = 0;
 
   virtual void Play() = 0;
+  virtual void Replay() = 0;
   virtual void Pause() = 0;
   virtual void Stop() = 0;
   virtual void Previous() = 0;
   virtual void Next() = 0;
+  virtual void SetRepeatTrackEnabled(bool enable) = 0;
   //    virtual void SetEnabledRandom(bool enable) = 0;
-  //    virtual void SetEnabledRepeat(bool enable) = 0;
 
   virtual void AddTrack(const TrackLocation& track_location) = 0;
   virtual void RemoveTrack(const TrackLocation& track_location) = 0;

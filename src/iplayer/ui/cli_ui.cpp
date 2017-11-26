@@ -27,6 +27,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     player_ctl_->Previous();
   } else if (command == "stop") {
     player_ctl_->Stop();
+  } else if (command == "repeat_track") {
+    player_ctl_->SetRepeatTrackEnabled(parameters == "on");
   } else if (command == "add_track") {
     TrackLocation track = parameters;
     player_ctl_->AddTrack(std::move(parameters));

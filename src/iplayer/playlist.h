@@ -18,7 +18,7 @@ class Playlist {
   void RemoveDuplicate();
 
   std::vector<TrackLocation> GetTracks() const;
-  TrackLocation AdvanceTrack(int64_t relative_pos);
+  TrackLocation SelectTrack(int64_t relative_pos);
   TrackLocation SetTrack(TrackId id);
   TrackLocation CurrentTrack() const;
 

@@ -55,7 +55,8 @@ void Playlist::RemoveDuplicate() {
   RemoveTrack(remove_ids);
 }
 
-// BEWARE: keep in mind that the location_to_id_ map must also be updated !
+// BEWARE: keep in mind that the location_to_id_ map must also be updated, this
+// is not done here
 void Playlist::RemoveTrack(std::vector<TrackId> track_ids) {
   std::sort(std::begin(track_ids), std::end(track_ids));
 
@@ -84,7 +85,7 @@ void Playlist::RemoveTrack(std::vector<TrackId> track_ids) {
 
 std::vector<TrackLocation> Playlist::GetTracks() const { return playlist_; }
 
-TrackLocation Playlist::AdvanceTrack(int64_t relative_pos) {
+TrackLocation Playlist::SelectTrack(int64_t relative_pos) {
   int64_t pos = current_track_ + relative_pos;
   if (pos < 0) {
     current_track_ = 0;

@@ -8,7 +8,9 @@
 namespace ip {
 
 PlayerControl::PlayerControl(Core* core)
-    : core_(core), status_(Status::kStop) {}
+    : core_(core),
+      status_(Status::kStop),
+      repeat_track_(false) {}
 
 void PlayerControl::Exit() {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -27,7 +29,8 @@ void PlayerControl::Play() {
     if (status_ == Status::kPlay) {
       return;
     }
-    AdvanceTrack(0);
+    auto track = playlist_.SelectTrack(0);
+    PlayTrack(track);
   } catch (const std::exception& e) {
     LOG("[E] %s", e.what());
   }
@@ -50,7 +53,8 @@ void PlayerControl::Stop() {
 void PlayerControl::Next() {
   std::lock_guard<std::mutex> lock(mutex_);
   try {
-    AdvanceTrack(1);
+    auto track = playlist_.SelectTrack(1);
+    PlayTrack(track);
   } catch (const std::exception& e) {
     LOG("[E] %s", e.what());
     StopImpl();
@@ -60,28 +64,34 @@ void PlayerControl::Next() {
 void PlayerControl::Previous() {
   std::lock_guard<std::mutex> lock(mutex_);
   try {
-    AdvanceTrack(-1);
+    auto track = playlist_.SelectTrack(-1);
+    PlayTrack(track);
   } catch (const std::exception& e) {
     LOG("[D] %s", e.what());
   }
 }
 
-void PlayerControl::AdvanceTrack(int64_t pos) {
-  auto track_location = playlist_.AdvanceTrack(pos);
-  if (decoder_) {
-    decoder_->Exit();
-  }
-  auto on_completion = [this](const std::error_code& ec) {
-    if (ec) {
-      LOG("[D] completion callback error: %s (%d)", ec.message().c_str(),
-          ec.value());
-      return;
-    }
-    core_->QueueExecution(std::bind(&PlayerControl::Next, this));
-  };
-  decoder_ =
-      std::make_unique<Decoder>(track_location, std::move(on_completion));
-  LOG("[D] Playing ! Playing ! Playing !");
+// TODO: current_track_ should not exists, it should use the playlist instead.
+// TODO: when active track is removed videolan stops and play the one that took
+// place
+void PlayerControl::Replay() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  PlayTrack(current_track_);
+}
+
+void PlayerControl::SetRepeatPlaylistEnabled(bool value) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  repeat_playlist_ = value;
+}
+
+void PlayerControl::SetRepeatTrackEnabled(bool value) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  repeat_track_ = value;
+}
+
+void PlayerControl::SetRandomTrackEnabled(bool value) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  random_mode_ = value;
 }
 
 void PlayerControl::Unpause() {
@@ -101,12 +111,40 @@ void PlayerControl::StopImpl() {
   status_ = Status::kStop;
 }
 
+void PlayerControl::PlayTrack(const TrackLocation& track) {
+  if (decoder_) {
+    decoder_->Exit();
+  }
+
+  // this handler will be called from decoder's thread context just before
+  // returning, it mustn't call directly PlayerControl methods that's why every
+  // handlers will queue execution in Core's thread context
+  auto on_completion = [this](const std::error_code& ec) {
+    if (ec) {
+      LOG("[D] completion callback error: %s (%d)", ec.message().c_str(),
+          ec.value());
+      return;
+    }
+    if (repeat_track_) {
+      core_->QueueExecution(std::bind(&PlayerControl::Replay, this));
+    } else {
+      core_->QueueExecution(std::bind(&PlayerControl::Next, this));
+    }
+  };
+  status_ = Status::kPlay;
+  decoder_ = std::make_unique<Decoder>(track, std::move(on_completion));
+  current_track_ = track;
+  LOG("[D] Playing ! Playing ! Playing !");
+}
+
 void PlayerControl::AddTrack(const TrackLocation& track_location) {
   std::lock_guard<std::mutex> lock(mutex_);
   LOG("[D] new track added: '%s'", track_location.c_str());
   playlist_.AddTrack({track_location});
 }
 
+// TODO: Playlist::RemoveTrack could notify if current track has been deleted
+// so PlayerControl::RemoveTrack could call StopImpl to mimic videolan
 void PlayerControl::RemoveTrack(const TrackLocation& track_location) {
   std::lock_guard<std::mutex> lock(mutex_);
   playlist_.RemoveTrack({track_location});
