@@ -146,6 +146,7 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
     }
   };
   status_ = Status::kPlay;
+  std::cout << "Playing " << track << std::endl;
   auto provider = std::make_unique<FsTrackProvider>();
   decoder_ = std::make_unique<Decoder>(std::move(provider), track,
                                        std::move(on_completion));
@@ -153,13 +154,24 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
 
 void PlayerControl::AddTrack(const TrackLocation& track_location) {
   std::lock_guard<std::mutex> lock(mutex_);
-  LOG("[D] new track added: '%s'", track_location.c_str());
+  std::cout << "Added " << track_location << std::endl;
   playlist_.AddTrack({track_location});
 }
 
+// TODO: display on stdout should be done from cli_ui
 void PlayerControl::ShowTrack() const {
   std::lock_guard<std::mutex> lock(mutex_);
-  auto elapsed = decoder_->GetPlayedTime();
+  std::chrono::seconds elapsed(0);
+  if (decoder_) {
+    elapsed = decoder_->GetPlayedTime();
+  }
+
+  std::cout << "Track: " << std::endl
+            << playlist_.CurrentTrack() << std::endl
+            << "Duration: " << std::endl
+            << "Elapsed: " << elapsed.count() << " sec" << std::endl
+            << "Title: " << std::endl
+            << "Codec: " << std::endl;
 }
 
 // TODO: Playlist::RemoveTrack could notify if current track has been deleted

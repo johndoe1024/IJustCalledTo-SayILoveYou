@@ -9,6 +9,28 @@
 
 namespace ip {
 
+// clang-format off
+void PrintHelp() {
+  std::cout << std::endl << "Welcome to Imaginary Player " IPLAYER_VERSION << std::endl << std::endl;
+  std::cout << "Commands:" << std::endl
+            << "---------" << std::endl
+            << "play                        play playlist's current track" << std::endl
+            << "prev                        previous track (unpause)" << std::endl
+            << "next                        next track (unpause)" << std::endl
+            << "stop                        stop and return at start of playlist" << std::endl
+            << "repeat_track on/off         current track will repeat" << std::endl
+            << "repeat_playlist on/off      playlist will restart to play"  << std::endl
+            << "add_track [track_name]      add track (metadata is dynamically created)" << std::endl
+            << "show_track                  display information about current track" << std::endl
+            << "remove_track [track_name]   remove 'track_name" << std::endl
+            << "remove_duplicates           remove duplicate track" << std::endl
+            << "show_playlist               show playlist" << std::endl
+            << std::endl
+            << "Use 'help' to display this message. Use 'exit' or 'quit' for leaving" << std::endl
+            << std::endl;
+}
+// clang-format on
+
 Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl)
     : player_ctl_(std::move(player_ctl)) {}
 
@@ -42,6 +64,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     player_ctl_->RemoveDuplicateTrack();
   } else if (command == "show_playlist") {
     player_ctl_->ShowPlaylist();
+  } else if (command == "help") {
+    PrintHelp();
   } else {
     std::cout << "Error: unknown command '" << command << "'" << std::endl;
   }
@@ -58,7 +82,7 @@ void Cli::Exit() {
 }
 
 void Cli::UiThread() {
-  std::cout << "Imaginary player " IPLAYER_VERSION << std::endl;
+  PrintHelp();
 
   while (true) {
     std::string input;
