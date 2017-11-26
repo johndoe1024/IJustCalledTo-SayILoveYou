@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <iostream>
 
+#include "iplayer/fs_track_provider.h"
 #include "iplayer/log.h"
 
 namespace ip {
@@ -145,14 +146,20 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
     }
   };
   status_ = Status::kPlay;
-  decoder_ = std::make_unique<Decoder>(track, std::move(on_completion));
-  LOG("[D] Playing ! Playing ! Playing !");
+  auto provider = std::make_unique<FsTrackProvider>();
+  decoder_ = std::make_unique<Decoder>(std::move(provider), track,
+                                       std::move(on_completion));
 }
 
 void PlayerControl::AddTrack(const TrackLocation& track_location) {
   std::lock_guard<std::mutex> lock(mutex_);
   LOG("[D] new track added: '%s'", track_location.c_str());
   playlist_.AddTrack({track_location});
+}
+
+void PlayerControl::ShowTrack() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto elapsed = decoder_->GetPlayedTime();
 }
 
 // TODO: Playlist::RemoveTrack could notify if current track has been deleted

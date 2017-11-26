@@ -30,6 +30,7 @@ class PlayerControl : public IPlayerControl {
   //  void SetEnabledRandom(bool enable) override;
 
   void AddTrack(const TrackLocation& track_location) override;
+  void ShowTrack() const override;
   void RemoveTrack(const TrackLocation& track_location) override;
   void RemoveDuplicateTrack() override;
   void ShowPlaylist() const override;

@@ -20,6 +20,7 @@ class IPlayerControl {
   //    virtual void SetEnabledRandom(bool enable) = 0;
 
   virtual void AddTrack(const TrackLocation& track_location) = 0;
+  virtual void ShowTrack() const = 0;
   virtual void RemoveTrack(const TrackLocation& track_location) = 0;
   virtual void RemoveDuplicateTrack() = 0;
   virtual void ShowPlaylist() const = 0;

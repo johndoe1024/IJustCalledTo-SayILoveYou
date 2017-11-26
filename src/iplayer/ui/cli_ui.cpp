@@ -34,6 +34,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   } else if (command == "add_track") {
     TrackLocation track = parameters;
     player_ctl_->AddTrack(std::move(parameters));
+  } else if (command == "show_track") {
+    player_ctl_->ShowTrack();
   } else if (command == "remove_track") {
     player_ctl_->RemoveTrack(std::move(parameters));
   } else if (command == "remove_duplicates") {

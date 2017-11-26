@@ -4,15 +4,21 @@ add_executable(iplayer
                core.h
                core.cpp
                i_player_control.h
+               i_track_io.h
+               i_track_provider.h
                i_user_interface.h
                log.h
                main.cpp
                decoder.h
                decoder.cpp
+               fs_track_provider.h
+               fs_track_provider.cpp
                playlist.h
                playlist.cpp
                track_location.h
                track_location.cpp
+               track_info.h
+               track_info.cpp
                player_control/player_control.h
                player_control/player_control.cpp
                ui/cli_ui.h
