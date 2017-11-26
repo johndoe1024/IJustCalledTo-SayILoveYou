@@ -11,7 +11,7 @@
             __func__);                                                        \
   } while (0)
 
-#define TRACE() LOG("")
+#define TRACE() LOG("[T]")
 
 #else
 

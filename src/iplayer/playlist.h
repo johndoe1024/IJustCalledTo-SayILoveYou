@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <unordered_map>
+#include <deque>
 
 #include "iplayer/track_location.h"
 
@@ -25,8 +25,7 @@ class Playlist {
  private:
   void RemoveTrack(std::vector<TrackId> track_ids);
 
-  std::vector<TrackLocation> playlist_;
-  std::unordered_multimap<TrackLocation, TrackId> location_to_id_;
+  std::deque<TrackLocation> playlist_;
   TrackId current_track_;
 };
 

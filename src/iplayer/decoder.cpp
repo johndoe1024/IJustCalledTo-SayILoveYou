@@ -44,7 +44,7 @@ void Decoder::Unpause() {
 }
 
 void Decoder::DecoderThread(TrackLocation track, CompletionCb completion_cb) {
-  TRACE();
+  LOG("[D] decoding %s", track.c_str());
   auto ec = std::make_error_code(std::errc::interrupted);
 
   auto interrupt_guard = CreateScopeGuard([&]() {
