@@ -3,6 +3,7 @@
 #include "iplayer/track_location.h"
 
 #include <atomic>
+#include <functional>
 #include <mutex>
 #include <thread>
 
@@ -12,7 +13,9 @@ class Decoder {
   enum class Status { kThreadRunning, kThreadPaused, kThreadExited };
 
  public:
-  Decoder(const TrackLocation& track);
+  using CompletionCb = std::function<void(const std::error_code&)>;
+
+  Decoder(const TrackLocation& track, CompletionCb completion_cb);
   virtual ~Decoder();
   void Exit();
 
@@ -21,7 +24,7 @@ class Decoder {
   void Unpause();
 
  private:
-  void DecoderThread(TrackLocation track);
+  void DecoderThread(TrackLocation track, CompletionCb completion_cb);
 
   std::mutex pause_mutex_;
   std::atomic<bool> exit_decoder_thread_;

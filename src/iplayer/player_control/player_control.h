@@ -5,6 +5,7 @@
 #include <atomic>
 #include <mutex>
 
+#include "iplayer/core.h"
 #include "iplayer/decoder.h"
 #include "iplayer/playlist.h"
 
@@ -14,7 +15,7 @@ class PlayerControl : public IPlayerControl {
   enum class Status { kStop, kPause, kPlay };
 
  public:
-  PlayerControl();
+  PlayerControl(Core* core);
   void Exit() override;
 
   void Play() override;
@@ -37,6 +38,7 @@ class PlayerControl : public IPlayerControl {
   void AdvanceTrack(int64_t pos);
 
   mutable std::mutex mutex_;
+  Core* core_;
   Status status_;
   bool shuffle_mode_;
   bool repeat_mode_;

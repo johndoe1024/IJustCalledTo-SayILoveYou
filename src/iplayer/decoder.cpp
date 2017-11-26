@@ -3,14 +3,16 @@
 #include <assert.h>
 
 #include "iplayer/log.h"
+#include "iplayer/utils/scope_guard.h"
 
 namespace ip {
 
-Decoder::Decoder(const TrackLocation& track)
+Decoder::Decoder(const TrackLocation& track, CompletionCb cb)
     : exit_decoder_thread_(false),
       status_(Status::kThreadRunning),
-      decoder_thread_([this](TrackLocation track) { DecoderThread(track); },
-                      track) {}
+      decoder_thread_([this](TrackLocation track,
+                             CompletionCb cb) { DecoderThread(track, cb); },
+                      track, cb) {}
 
 Decoder::~Decoder() {
   // Exit() must be called before to stop working thread
@@ -41,18 +43,29 @@ void Decoder::Unpause() {
   status_ = Status::kThreadRunning;
 }
 
-void Decoder::DecoderThread(TrackLocation track) {
+void Decoder::DecoderThread(TrackLocation track, CompletionCb completion_cb) {
   TRACE();
+  auto ec = std::make_error_code(std::errc::interrupted);
 
-  while (true) {
+  auto interrupt_guard = CreateScopeGuard([&]() {
+    if (completion_cb) {
+      completion_cb(ec);
+    }
+  });
+
+  // TODO: remove this when time is handled
+  for (size_t i = 0; i < 4; ++i) {
     if (exit_decoder_thread_) {
       LOG("[D] exiting");
       return;
     }
+    // pause (TODO: use a condition variable instead)
     { std::lock_guard<std::mutex> lock(pause_mutex_); }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     LOG("[D] chunk of %s", track.c_str());
   }
+  ec.clear();  // don't call completion cb with ec set
 }
 
 }  // namespace ip

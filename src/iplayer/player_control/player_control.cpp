@@ -7,11 +7,13 @@
 
 namespace ip {
 
-PlayerControl::PlayerControl() : status_(Status::kStop) {}
+PlayerControl::PlayerControl(Core* core)
+    : core_(core), status_(Status::kStop) {}
 
 void PlayerControl::Exit() {
   std::lock_guard<std::mutex> lock(mutex_);
   StopImpl();
+  core_->Stop();
 }
 
 // TODO: move try/catch into caller
@@ -69,7 +71,16 @@ void PlayerControl::AdvanceTrack(int64_t pos) {
   if (decoder_) {
     decoder_->Exit();
   }
-  decoder_ = std::make_unique<Decoder>(track_location);
+  auto on_completion = [this](const std::error_code& ec) {
+    if (ec) {
+      LOG("[D] completion callback error: %s (%d)", ec.message().c_str(),
+          ec.value());
+      return;
+    }
+    core_->QueueExecution(std::bind(&PlayerControl::Next, this));
+  };
+  decoder_ =
+      std::make_unique<Decoder>(track_location, std::move(on_completion));
   LOG("[D] Playing ! Playing ! Playing !");
 }
 

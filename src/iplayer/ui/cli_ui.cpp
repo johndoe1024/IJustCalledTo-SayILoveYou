@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include "assert.h"
 
 #include "iplayer/log.h"
 #include "iplayer/track_location.h"
@@ -10,6 +11,8 @@ namespace ip {
 
 Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl)
     : player_ctl_(std::move(player_ctl)) {}
+
+Cli::~Cli() { assert(!ui_thread_.joinable()); }
 
 void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   if (command.empty()) {
@@ -39,6 +42,16 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
 }
 
 void Cli::Run() {
+  ui_thread_ = std::thread([this]() { UiThread(); });
+}
+
+void Cli::Exit() {
+  if (ui_thread_.joinable()) {
+    ui_thread_.join();
+  }
+}
+
+void Cli::UiThread() {
   std::cout << "Imaginary player " IPLAYER_VERSION << std::endl;
 
   while (true) {

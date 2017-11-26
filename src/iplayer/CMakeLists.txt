@@ -17,6 +17,9 @@ add_executable(iplayer
                player_control/player_control.cpp
                ui/cli_ui.h
                ui/cli_ui.cpp
+               utils/scope_guard.h
+               utils/exec_queue.h
+               utils/exec_queue.cpp
                )
 
 target_compile_features(iplayer PRIVATE cxx_std_14)
