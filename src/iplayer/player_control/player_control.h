@@ -29,6 +29,7 @@ class PlayerControl : public IPlayerControl {
   //  void SetEnabledRepeat(bool enable) override;
 
   void AddTrack(const TrackLocation& track_location) override;
+  void RemoveTrack(const TrackLocation& track_location) override;
   void ShowPlaylist() const override;
 
  private:

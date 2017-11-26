@@ -95,6 +95,11 @@ void PlayerControl::AddTrack(const TrackLocation& track_location) {
   playlist_.AddTrack({track_location});
 }
 
+void PlayerControl::RemoveTrack(const TrackLocation& track_location) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  playlist_.RemoveTrack({track_location});
+}
+
 void PlayerControl::ShowPlaylist() const {
   std::vector<TrackLocation> tracks;
   {
