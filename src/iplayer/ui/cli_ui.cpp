@@ -29,6 +29,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     player_ctl_->AddTrack(std::move(parameters));
   } else if (command == "remove_track") {
     player_ctl_->RemoveTrack(std::move(parameters));
+  } else if (command == "remove_duplicates") {
+    player_ctl_->RemoveDuplicateTrack();
   } else if (command == "show_playlist") {
     player_ctl_->ShowPlaylist();
   } else {

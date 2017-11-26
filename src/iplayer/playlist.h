@@ -15,6 +15,7 @@ class Playlist {
 
   void AddTrack(const std::vector<TrackLocation>& tracks);
   void RemoveTrack(const std::vector<TrackLocation>& tracks);
+  void RemoveDuplicate();
 
   std::vector<TrackLocation> GetTracks() const;
   TrackLocation AdvanceTrack(int64_t relative_pos);

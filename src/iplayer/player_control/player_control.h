@@ -23,13 +23,12 @@ class PlayerControl : public IPlayerControl {
   void Previous() override;
   void Next() override;
 
-  //  void Previous() override;
-  //  void RemoveDuplicateTrack() override;
   //  void SetEnabledRandom(bool enable) override;
   //  void SetEnabledRepeat(bool enable) override;
 
   void AddTrack(const TrackLocation& track_location) override;
   void RemoveTrack(const TrackLocation& track_location) override;
+  void RemoveDuplicateTrack() override;
   void ShowPlaylist() const override;
 
  private:
@@ -37,7 +36,7 @@ class PlayerControl : public IPlayerControl {
   void StopImpl();
   void AdvanceTrack(int64_t pos);
 
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
   Status status_;
   bool shuffle_mode_;
   bool repeat_mode_;

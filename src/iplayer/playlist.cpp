@@ -30,6 +30,31 @@ void Playlist::RemoveTrack(const std::vector<TrackLocation>& tracks) {
   RemoveTrack(remove_ids);
 }
 
+void Playlist::RemoveDuplicate() {
+  std::vector<TrackId> remove_ids;
+
+  // iterate over the multimap and keep at max one value for each key
+  for (auto it = std::begin(location_to_id_);
+       it != std::end(location_to_id_);) {
+    auto range = location_to_id_.equal_range(it->first);
+
+    // erase all items but the first and keep removed indexes
+    if (std::distance(range.first, range.second) > 1) {
+      auto begin = std::next(range.first);
+      for (auto it = begin; it != range.second; ++it) {
+        remove_ids.push_back(it->second);
+      }
+      location_to_id_.erase(begin, range.second);
+    }
+
+    // step to the end of the range
+    it = range.second;
+  }
+
+  // update the vector and the track index
+  RemoveTrack(remove_ids);
+}
+
 // BEWARE: keep in mind that the location_to_id_ map must also be updated !
 void Playlist::RemoveTrack(std::vector<TrackId> track_ids) {
   std::sort(std::begin(track_ids), std::end(track_ids));

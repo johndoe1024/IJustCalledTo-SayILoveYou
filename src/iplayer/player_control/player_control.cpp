@@ -1,6 +1,7 @@
 #include "iplayer/player_control/player_control.h"
 
 #include <assert.h>
+#include <iostream>
 
 #include "iplayer/log.h"
 
@@ -98,6 +99,11 @@ void PlayerControl::AddTrack(const TrackLocation& track_location) {
 void PlayerControl::RemoveTrack(const TrackLocation& track_location) {
   std::lock_guard<std::mutex> lock(mutex_);
   playlist_.RemoveTrack({track_location});
+}
+
+void PlayerControl::RemoveDuplicateTrack() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  playlist_.RemoveDuplicate();
 }
 
 void PlayerControl::ShowPlaylist() const {
