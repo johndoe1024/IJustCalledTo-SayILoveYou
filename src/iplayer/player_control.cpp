@@ -1,4 +1,4 @@
-#include "iplayer/player_control/player_control.h"
+#include "iplayer/player_control.h"
 
 #include <assert.h>
 #include <iostream>

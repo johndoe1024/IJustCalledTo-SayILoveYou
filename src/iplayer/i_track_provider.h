@@ -3,7 +3,7 @@
 #include <system_error>
 
 #include "iplayer/i_track_io.h"
-#include "iplayer/track.h"
+#include "iplayer/track_info.h"
 
 namespace ip {
 

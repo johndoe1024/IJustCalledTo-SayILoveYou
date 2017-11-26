@@ -4,10 +4,10 @@
 
 #include "iplayer/decoder.h"
 #include "iplayer/log.h"
-#include "iplayer/player_control/player_control.h"
+#include "iplayer/player_control.h"
 #include "iplayer/playlist.h"
 #include "iplayer/track_location.h"
-#include "iplayer/ui/cli_ui.h"
+#include "iplayer/cli_ui.h"
 
 namespace ip {
 

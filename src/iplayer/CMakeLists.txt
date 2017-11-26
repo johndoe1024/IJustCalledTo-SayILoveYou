@@ -1,6 +1,8 @@
 set(IPLAYER_VERSION "1.0")
 
 add_executable(iplayer
+               cli_ui.h
+               cli_ui.cpp
                core.h
                core.cpp
                i_player_control.h
@@ -8,21 +10,18 @@ add_executable(iplayer
                i_track_provider.h
                i_user_interface.h
                log.h
-               main.cpp
                decoder.h
                decoder.cpp
                fs_track_provider.h
                fs_track_provider.cpp
+               main.cpp
+               player_control.h
+               player_control.cpp
                playlist.h
                playlist.cpp
                track_location.h
                track_location.cpp
                track_info.h
-               track_info.cpp
-               player_control/player_control.h
-               player_control/player_control.cpp
-               ui/cli_ui.h
-               ui/cli_ui.cpp
                utils/scope_guard.h
                utils/exec_queue.h
                utils/exec_queue.cpp
@@ -31,6 +30,6 @@ add_executable(iplayer
 target_compile_features(iplayer PRIVATE cxx_std_14)
 #target_compile_options(iplayer PRIVATE -Wall)
 target_compile_definitions(iplayer PRIVATE
-                           IPLAYER_VERSION="${IPLAYER_VERSION}"
-                           IPLAYER_ENABLE_LOG)
+                           #IPLAYER_ENABLE_LOG
+                           IPLAYER_VERSION="${IPLAYER_VERSION}")
 target_link_libraries(iplayer PRIVATE pthread)

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "iplayer/track.h"
+#include "iplayer/track_info.h"
 #include "iplayer/track_location.h"
 
 namespace ip {

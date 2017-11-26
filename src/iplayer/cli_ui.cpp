@@ -1,4 +1,4 @@
-#include "iplayer/ui/cli_ui.h"
+#include "iplayer/cli_ui.h"
 
 #include <assert.h>
 #include <iostream>
