@@ -1,5 +1,6 @@
 #include "iplayer/playlist.h"
 
+#include <assert.h>
 #include <algorithm>
 #include <unordered_set>
 
@@ -41,18 +42,31 @@ std::vector<TrackLocation> Playlist::GetTracks() const {
   return tracks;
 }
 
+TrackLocation Playlist::SeekTrack(int64_t pos, SeekWay offset_type) {
+  if (offset_type == SeekWay::kBegin) {
+    assert(pos >= 0);
     current_track_ = static_cast<uint32_t>(pos);
+    return playlist_.at(current_track_);
+    ;
+  } else {
+    // TrackOffsetType::kCurrent
+    int64_t new_pos = current_track_ + pos;
+    if (new_pos < 0) {
+      current_track_ = 0;
+    } else {
+      current_track_ = static_cast<uint32_t>(new_pos);
+    }
   }
-  return playlist_.at(current_track_);
-}
-
-TrackLocation Playlist::SetTrack(TrackId track_id) {
-  current_track_ = track_id;
   return playlist_.at(current_track_);
 }
 
 TrackLocation Playlist::CurrentTrack() const {
   return playlist_.at(current_track_);
+}
+
+size_t Playlist::Remaining() const {
+  assert(current_track_ < playlist_.size());
+  return playlist_.size() - 1 - current_track_;
 }
 
 }  // namespace ip

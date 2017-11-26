@@ -23,8 +23,9 @@ class PlayerControl : public IPlayerControl {
   void Stop() override;
   void Previous() override;
   void Next() override;
-  void Replay() override;
+  void RestartCurrentTrack() override;
   void SetRepeatTrackEnabled(bool enable) override;
+  void SetRepeatPlaylistEnabled(bool enable) override;
 
   //  void SetEnabledRandom(bool enable) override;
 
@@ -35,7 +36,7 @@ class PlayerControl : public IPlayerControl {
 
  private:
   void Unpause();
-  void StopImpl();
+  void StopAndSeekBegin();
   void SelectTrack(int64_t pos, TrackLocation* track_location);
   void PlayTrack(const TrackLocation& track_location);
 
@@ -43,10 +44,10 @@ class PlayerControl : public IPlayerControl {
   Core* core_;
   Status status_;
   bool shuffle_mode_;
+  std::atomic<bool> repeat_playlist_;
   std::atomic<bool> repeat_track_;
   std::unique_ptr<Decoder> decoder_;
   Playlist playlist_;
-  TrackLocation current_track_;
 };
 
 }  // namespace ip

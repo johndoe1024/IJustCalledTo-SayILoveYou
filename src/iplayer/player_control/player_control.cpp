@@ -10,11 +10,12 @@ namespace ip {
 PlayerControl::PlayerControl(Core* core)
     : core_(core),
       status_(Status::kStop),
+      repeat_playlist_(false),
       repeat_track_(false) {}
 
 void PlayerControl::Exit() {
   std::lock_guard<std::mutex> lock(mutex_);
-  StopImpl();
+  StopAndSeekBegin();
   core_->Stop();
 }
 
@@ -29,7 +30,7 @@ void PlayerControl::Play() {
     if (status_ == Status::kPlay) {
       return;
     }
-    auto track = playlist_.SelectTrack(0);
+    auto track = playlist_.SeekTrack(0, Playlist::SeekWay::kCurrent);
     PlayTrack(track);
   } catch (const std::exception& e) {
     LOG("[E] %s", e.what());
@@ -47,36 +48,47 @@ void PlayerControl::Pause() {
 
 void PlayerControl::Stop() {
   std::lock_guard<std::mutex> lock(mutex_);
-  StopImpl();
+  StopAndSeekBegin();
 }
 
 void PlayerControl::Next() {
+  TrackLocation track;
+
   std::lock_guard<std::mutex> lock(mutex_);
-  try {
-    auto track = playlist_.SelectTrack(1);
-    PlayTrack(track);
-  } catch (const std::exception& e) {
-    LOG("[E] %s", e.what());
-    StopImpl();
+  if (playlist_.Remaining() == 0) {
+    if (!repeat_playlist_) {
+      StopAndSeekBegin();
+      return;
+    }
+    // continue with first item in the playlist
+    LOG("[D] repeat_playlist mode on, restarting playlist");
+    track = playlist_.SeekTrack(0, Playlist::SeekWay::kBegin);
+  } else {
+    track = playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent);
   }
+  PlayTrack(track);
 }
 
 void PlayerControl::Previous() {
   std::lock_guard<std::mutex> lock(mutex_);
   try {
-    auto track = playlist_.SelectTrack(-1);
+    auto track = playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent);
     PlayTrack(track);
   } catch (const std::exception& e) {
     LOG("[D] %s", e.what());
   }
 }
 
-// TODO: current_track_ should not exists, it should use the playlist instead.
-// TODO: when active track is removed videolan stops and play the one that took
-// place
-void PlayerControl::Replay() {
+void PlayerControl::RestartCurrentTrack() {
   std::lock_guard<std::mutex> lock(mutex_);
-  PlayTrack(current_track_);
+  try {
+    auto track = playlist_.CurrentTrack();
+    PlayTrack(track);
+  } catch (const std::exception& e) {
+    LOG("[D] %s", e.what());
+    // videolan play the next one (which index became equal to current)
+    StopAndSeekBegin();
+  }
 }
 
 void PlayerControl::SetRepeatPlaylistEnabled(bool value) {
@@ -103,11 +115,11 @@ void PlayerControl::Unpause() {
   status_ = Status::kPlay;
 }
 
-void PlayerControl::StopImpl() {
+void PlayerControl::StopAndSeekBegin() {
   if (decoder_) {
     decoder_->Exit();
   }
-  playlist_.SetTrack(0);
+  playlist_.SeekTrack(0, Playlist::SeekWay::kBegin);
   status_ = Status::kStop;
 }
 
@@ -126,14 +138,14 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
       return;
     }
     if (repeat_track_) {
-      core_->QueueExecution(std::bind(&PlayerControl::Replay, this));
+      core_->QueueExecution(
+          std::bind(&PlayerControl::RestartCurrentTrack, this));
     } else {
       core_->QueueExecution(std::bind(&PlayerControl::Next, this));
     }
   };
   status_ = Status::kPlay;
   decoder_ = std::make_unique<Decoder>(track, std::move(on_completion));
-  current_track_ = track;
   LOG("[D] Playing ! Playing ! Playing !");
 }
 

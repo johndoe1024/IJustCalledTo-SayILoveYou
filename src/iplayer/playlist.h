@@ -10,6 +10,7 @@ namespace ip {
 class Playlist {
  public:
   using TrackId = uint32_t;
+  enum class SeekWay { kBegin = 0, kCurrent };
 
   Playlist();
 
@@ -18,9 +19,9 @@ class Playlist {
   void RemoveDuplicate();
 
   std::vector<TrackLocation> GetTracks() const;
-  TrackLocation SelectTrack(int64_t relative_pos);
-  TrackLocation SetTrack(TrackId id);
+  TrackLocation SeekTrack(int64_t pos, SeekWay offset_type);
   TrackLocation CurrentTrack() const;
+  size_t Remaining() const;
 
  private:
   void RemoveTrack(std::vector<TrackId> track_ids);
