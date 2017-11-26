@@ -17,7 +17,7 @@ class IPlayerControl {
   virtual void Next() = 0;
   virtual void SetRepeatTrackEnabled(bool enable) = 0;
   virtual void SetRepeatPlaylistEnabled(bool enable) = 0;
-  //    virtual void SetEnabledRandom(bool enable) = 0;
+  virtual void SetRandomTrackEnabled(bool value) = 0;
 
   virtual void AddTrack(const TrackLocation& track_location) = 0;
   virtual void ShowTrack() const = 0;

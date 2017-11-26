@@ -82,6 +82,17 @@ void Cli::Exit() {
 }
 
 void Cli::UiThread() {
+  // for tests
+  Dispatch("add_track", "hello.music");
+  Dispatch("add_track", "world1.music");
+  Dispatch("add_track", "world2.music");
+  Dispatch("add_track", "world3.music");
+  Dispatch("add_track", "world4.music");
+  Dispatch("add_track", "world2.music");
+  Dispatch("add_track", "world5.music");
+  Dispatch("add_track", "world6.music");
+  Dispatch("add_track", "world2.music");
+
   PrintHelp();
 
   while (true) {

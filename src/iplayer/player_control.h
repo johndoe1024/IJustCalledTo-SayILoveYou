@@ -26,8 +26,7 @@ class PlayerControl : public IPlayerControl {
   void RestartCurrentTrack() override;
   void SetRepeatTrackEnabled(bool enable) override;
   void SetRepeatPlaylistEnabled(bool enable) override;
-
-  //  void SetEnabledRandom(bool enable) override;
+  void SetRandomTrackEnabled(bool value) override;
 
   void AddTrack(const TrackLocation& track_location) override;
   void ShowTrack() const override;
@@ -44,7 +43,7 @@ class PlayerControl : public IPlayerControl {
   mutable std::mutex mutex_;
   Core* core_;
   Status status_;
-  bool shuffle_mode_;
+  bool random_mode_;
   std::atomic<bool> repeat_playlist_;
   std::atomic<bool> repeat_track_;
   std::unique_ptr<Decoder> decoder_;

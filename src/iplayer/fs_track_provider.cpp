@@ -11,7 +11,7 @@ static uint32_t title_id = 0;
 
 TrackInfo FsTrackProvider::GetTrackInfo(const TrackLocation& location) {
   TrackInfo track_info{location, "foobar_" + std::to_string(title_id), title_id,
-                       std::chrono::seconds(120), "mp3"};
+                       std::chrono::seconds(5), "mp3"};
   ++title_id;
   return track_info;
 }
