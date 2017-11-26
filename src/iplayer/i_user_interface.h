@@ -9,4 +9,4 @@ class IUserInterface {
    //virtual void Exit() = 0;
 };
 
-}  // namespace imp
+}  // namespace ip

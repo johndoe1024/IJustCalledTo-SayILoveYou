@@ -29,4 +29,4 @@ class Decoder {
   std::thread decoder_thread_;
 };
 
-}  // namespace imp
+}  // namespace ip

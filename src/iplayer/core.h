@@ -7,4 +7,4 @@ class Core {
     void Start();
 };
 
-}  // namespace imp
+}  // namespace ip

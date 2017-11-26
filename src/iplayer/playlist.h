@@ -13,6 +13,8 @@ class Playlist {
   Playlist();
 
   void AddTrack(const std::vector<TrackLocation>& tracks);
+
+  std::vector<TrackLocation> GetTracks() const;
   TrackLocation AdvanceTrack(int64_t relative_pos);
   TrackLocation SetTrack(TrackId id);
   TrackLocation CurrentTrack() const;
@@ -22,4 +24,4 @@ class Playlist {
   TrackId current_track_;
 };
 
-}  // namespace imp
+}  // namespace ip

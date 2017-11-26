@@ -29,6 +29,7 @@ class PlayerControl : public IPlayerControl {
   //  void SetEnabledRepeat(bool enable) override;
 
   void AddTrack(const TrackLocation& track_location) override;
+  void ShowPlaylist() const override;
 
  private:
   void Unpause();
@@ -43,4 +44,4 @@ class PlayerControl : public IPlayerControl {
   Playlist playlist_;
 };
 
-}  // namespace imp
+}  // namespace ip

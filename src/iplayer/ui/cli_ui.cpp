@@ -12,17 +12,23 @@ Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl)
     : player_ctl_(std::move(player_ctl)) {}
 
 void Cli::Dispatch(const std::string& command, const std::string& parameters) {
+  if (command.empty()) {
+    return;
+  }
+
   if (command == "play") {
     player_ctl_->Play();
-  } else if (command == "add_track") {
-    TrackLocation track = parameters;
-    player_ctl_->AddTrack(std::move(parameters));
   } else if (command == "next") {
     player_ctl_->Next();
   } else if (command == "prev") {
     player_ctl_->Previous();
   } else if (command == "stop") {
     player_ctl_->Stop();
+  } else if (command == "add_track") {
+    TrackLocation track = parameters;
+    player_ctl_->AddTrack(std::move(parameters));
+  } else if (command == "show_playlist") {
+    player_ctl_->ShowPlaylist();
   } else {
     std::cout << "Error: unknown command '" << command << "'" << std::endl;
   }
@@ -30,9 +36,6 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
 
 void Cli::Run() {
   std::cout << "Imaginary player " IPLAYER_VERSION << std::endl;
-
-  Dispatch("add_track", "hello.music");
-  Dispatch("add_track", "world.music");
 
   while (true) {
     std::string input;
@@ -44,7 +47,7 @@ void Cli::Run() {
     const auto parameters = input.substr(first_space_index + 1, input.size());
     LOG("[D] processing command='%s' with parameters='%s'", command.c_str(),
         parameters.c_str());
-    if (command == "exit") {
+    if (command == "exit" || command == "quit") {
       player_ctl_->Exit();
       return;
     }

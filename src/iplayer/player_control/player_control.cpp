@@ -95,4 +95,15 @@ void PlayerControl::AddTrack(const TrackLocation& track_location) {
   playlist_.AddTrack({track_location});
 }
 
+void PlayerControl::ShowPlaylist() const {
+  std::vector<TrackLocation> tracks;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    tracks = playlist_.GetTracks();
+  }
+  for (const auto& track : tracks) {
+    std::cout << track << std::endl;
+  }
+}
+
 }  // namespace ip

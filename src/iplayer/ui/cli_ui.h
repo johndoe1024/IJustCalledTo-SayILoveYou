@@ -20,4 +20,4 @@ class Cli : public IUserInterface {
     void Dispatch(const std::string& command, const std::string& parameters);
 };
 
-}  // namespace imp
+}  // namespace ip

@@ -7,6 +7,7 @@ namespace ip {
 class IPlayerControl {
  public:
   virtual ~IPlayerControl() {}
+  virtual void Exit() = 0;
 
   virtual void Play() = 0;
   virtual void Pause() = 0;
@@ -17,8 +18,9 @@ class IPlayerControl {
   //    virtual void RemoveDuplicateTrack() = 0;
   //    virtual void SetEnabledRandom(bool enable) = 0;
   //    virtual void SetEnabledRepeat(bool enable) = 0;
+
   virtual void AddTrack(const TrackLocation& track_location) = 0;
-  virtual void Exit() = 0;
+  virtual void ShowPlaylist() const = 0;
 };
 
 }  // namespace ip

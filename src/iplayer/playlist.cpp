@@ -12,6 +12,8 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
             std::back_inserter(playlist_));
 }
 
+std::vector<TrackLocation> Playlist::GetTracks() const { return playlist_; }
+
 TrackLocation Playlist::AdvanceTrack(int64_t relative_pos) {
   int64_t pos = current_track_ + relative_pos;
   if (pos < 0) {
