@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <algorithm>
-#include <unordered_set>
 
 namespace ip {
 
@@ -13,12 +12,13 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
             std::back_inserter(playlist_));
 }
 
-void Playlist::RemoveTrack(const std::vector<TrackLocation>& tracks) {
-  for (const auto& track : tracks) {
-    playlist_.erase(
-        std::remove(std::begin(playlist_), std::end(playlist_), track),
-        std::end(playlist_));
-  }
+void Playlist::RemoveTrack(const std::unordered_set<TrackLocation>& tracks) {
+  auto pred = [&](const TrackLocation& track) {
+    return tracks.find(track) != std::cend(tracks);
+  };
+  playlist_.erase(
+      std::remove_if(std::begin(playlist_), std::end(playlist_), pred),
+      std::end(playlist_));
 }
 
 void Playlist::RemoveDuplicate() {

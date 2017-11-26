@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <deque>
+#include <unordered_set>
 
 #include "iplayer/track_location.h"
 
@@ -15,7 +16,7 @@ class Playlist {
   Playlist();
 
   void AddTrack(const std::vector<TrackLocation>& tracks);
-  void RemoveTrack(const std::vector<TrackLocation>& tracks);
+  void RemoveTrack(const std::unordered_set<TrackLocation>& tracks);
   void RemoveDuplicate();
 
   std::vector<TrackLocation> GetTracks() const;
