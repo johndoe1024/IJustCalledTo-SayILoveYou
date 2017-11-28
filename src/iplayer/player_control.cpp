@@ -117,18 +117,12 @@ void PlayerControl::Unpause() {
 }
 
 void PlayerControl::StopAndSeekBegin() {
-  if (decoder_) {
-    decoder_->Exit();
-  }
+  decoder_.reset();
   playlist_.SeekTrack(0, Playlist::SeekWay::kBegin);
   status_ = Status::kStop;
 }
 
 void PlayerControl::PlayTrack(const TrackLocation& track) {
-  if (decoder_) {
-    decoder_->Exit();
-  }
-
   // this handler will be called from decoder's thread context just before
   // returning, it mustn't call directly PlayerControl methods that's why every
   // handlers will queue execution in Core's thread context

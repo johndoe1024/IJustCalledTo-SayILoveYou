@@ -44,8 +44,8 @@ class PlayerControl : public IPlayerControl {
   Core* core_;
   Status status_;
   bool random_mode_;
-  std::atomic<bool> repeat_playlist_;
-  std::atomic<bool> repeat_track_;
+  bool repeat_playlist_;
+  bool repeat_track_;
   std::unique_ptr<Decoder> decoder_;
   Playlist playlist_;
 };

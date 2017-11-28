@@ -3,7 +3,7 @@
 #include "iplayer/i_user_interface.h"
 
 #include <memory>
-#include <thread>
+#include <future>
 
 #include "iplayer/i_player_control.h"
 
@@ -21,7 +21,7 @@ class Cli : public IUserInterface {
   void Dispatch(const std::string& command, const std::string& parameters);
   void UiThread();
 
-  std::thread ui_thread_;
+  std::future<void> cli_future_;
   std::unique_ptr<IPlayerControl> player_ctl_;
 };
 

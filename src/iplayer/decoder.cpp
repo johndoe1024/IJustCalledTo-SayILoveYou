@@ -9,30 +9,18 @@ namespace ip {
 
 Decoder::Decoder(std::unique_ptr<ITrackProvider> provider,
                  const TrackLocation& track, CompletionCb cb)
-    : exit_decoder_thread_(false),
-      status_(Status::kThreadRunning),
-      decoder_thread_(
-          [this](std::unique_ptr<ITrackProvider> provider,
-                 TrackLocation location, CompletionCb cb) {
-            DecoderThread(std::move(provider), location, cb);
-          },
-          std::move(provider), track, cb) {}
+    : exit_decoder_thread_(false), status_(Status::kThreadRunning) {
 
-Decoder::~Decoder() {
-  // Exit() must be called before to stop working thread
-  assert(status_ == Status::kThreadExited);
+  decoder_future_ = std::async(std::launch::async, &Decoder::DecoderThread,
+                               this, std::move(provider), track, cb);
 }
 
-void Decoder::Exit() {
-  if (status_ == Status::kThreadExited) {
-    return;
-  }
+Decoder::~Decoder() {
+  exit_decoder_thread_ = true;
   if (status_ == Status::kThreadPaused) {
     Unpause();
   }
-  exit_decoder_thread_ = true;
-  decoder_thread_.join();
-  status_ = Status::kThreadExited;
+  status_ = Status::kThreadExit;
 }
 
 void Decoder::Pause() {
@@ -47,10 +35,7 @@ void Decoder::Unpause() {
   status_ = Status::kThreadRunning;
 }
 
-std::chrono::seconds Decoder::GetPlayedTime() const
-{
-  return played_time_;
-}
+std::chrono::seconds Decoder::GetPlayedTime() const { return played_time_; }
 
 void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
                             TrackLocation location,
@@ -87,9 +72,10 @@ void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
 
     LOG("[D] chunk of %s (%02lu:%02lu / %02lu:%02lu)", location.c_str(),
         std::chrono::duration_cast<std::chrono::minutes>(elapsed).count(),
-        std::chrono::duration_cast<std::chrono::seconds>(elapsed).count()%60,
+        std::chrono::duration_cast<std::chrono::seconds>(elapsed).count() % 60,
         std::chrono::duration_cast<std::chrono::minutes>(duration).count(),
-        std::chrono::duration_cast<std::chrono::seconds>(duration).count()%60);
+        std::chrono::duration_cast<std::chrono::seconds>(duration).count() %
+            60);
   }
 
   ec.clear();  // clear error code on success for completion_handler

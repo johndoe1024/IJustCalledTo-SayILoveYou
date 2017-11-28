@@ -34,7 +34,7 @@ void PrintHelp() {
 Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl)
     : player_ctl_(std::move(player_ctl)) {}
 
-Cli::~Cli() { assert(!ui_thread_.joinable()); }
+Cli::~Cli() {}
 
 void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   if (command.empty()) {
@@ -72,14 +72,10 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
 }
 
 void Cli::Run() {
-  ui_thread_ = std::thread([this]() { UiThread(); });
+  cli_future_ = std::async(std::launch::async, [&]() { UiThread(); });
 }
 
-void Cli::Exit() {
-  if (ui_thread_.joinable()) {
-    ui_thread_.join();
-  }
-}
+void Cli::Exit() { cli_future_.get(); }
 
 void Cli::UiThread() {
   // for tests
