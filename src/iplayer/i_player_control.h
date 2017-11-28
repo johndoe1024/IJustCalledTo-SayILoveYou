@@ -2,6 +2,8 @@
 
 #include "iplayer/track_location.h"
 
+#include "iplayer/track_info.h"
+
 namespace ip {
 
 class IPlayerControl {
@@ -20,7 +22,8 @@ class IPlayerControl {
   virtual void SetRandomTrackEnabled(bool value) = 0;
 
   virtual void AddTrack(const TrackLocation& track_location) = 0;
-  virtual void ShowTrack() const = 0;
+  virtual TrackInfo GetCurrentTrackInfo(
+      std::chrono::seconds* elapsed) const = 0;
   virtual void RemoveTrack(const TrackLocation& track_location) = 0;
   virtual void RemoveDuplicateTrack() = 0;
   virtual void ShowPlaylist() const = 0;

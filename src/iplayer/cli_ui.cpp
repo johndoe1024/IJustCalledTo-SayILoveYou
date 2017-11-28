@@ -31,6 +31,22 @@ void PrintHelp() {
 }
 // clang-format on
 
+void PrintTrackInfo(const TrackInfo& track, std::chrono::seconds* elapsed) {
+  std::string elapsed_str;
+  if (!elapsed) {
+    elapsed_str = "N/A";
+  } else {
+    elapsed_str = std::to_string(elapsed->count());
+  }
+
+  std::cout << "Track: " << track.TrackNumber() << std::endl
+            << track.Location() << std::endl
+            << "Duration: " << track.Duration().count() << "sec" << std::endl
+            << "Elapsed: " << elapsed_str << "sec" << std::endl
+            << "Title: " << track.Title() << std::endl
+            << "Codec: " << track.Codec() << std::endl;
+}
+
 Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl)
     : player_ctl_(std::move(player_ctl)) {}
 
@@ -41,33 +57,39 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     return;
   }
 
-  if (command == "play") {
-    player_ctl_->Play();
-  } else if (command == "next") {
-    player_ctl_->Next();
-  } else if (command == "prev") {
-    player_ctl_->Previous();
-  } else if (command == "stop") {
-    player_ctl_->Stop();
-  } else if (command == "repeat_track") {
-    player_ctl_->SetRepeatTrackEnabled(parameters == "on");
-  } else if (command == "repeat_playlist") {
-    player_ctl_->SetRepeatPlaylistEnabled(parameters == "on");
-  } else if (command == "add_track") {
-    TrackLocation track = parameters;
-    player_ctl_->AddTrack(std::move(parameters));
-  } else if (command == "show_track") {
-    player_ctl_->ShowTrack();
-  } else if (command == "remove_track") {
-    player_ctl_->RemoveTrack(std::move(parameters));
-  } else if (command == "remove_duplicates") {
-    player_ctl_->RemoveDuplicateTrack();
-  } else if (command == "show_playlist") {
-    player_ctl_->ShowPlaylist();
-  } else if (command == "help") {
-    PrintHelp();
-  } else {
-    std::cout << "Error: unknown command '" << command << "'" << std::endl;
+  try {
+    if (command == "play") {
+      player_ctl_->Play();
+    } else if (command == "next") {
+      player_ctl_->Next();
+    } else if (command == "prev") {
+      player_ctl_->Previous();
+    } else if (command == "stop") {
+      player_ctl_->Stop();
+    } else if (command == "repeat_track") {
+      player_ctl_->SetRepeatTrackEnabled(parameters == "on");
+    } else if (command == "repeat_playlist") {
+      player_ctl_->SetRepeatPlaylistEnabled(parameters == "on");
+    } else if (command == "add_track") {
+      TrackLocation track = parameters;
+      player_ctl_->AddTrack(std::move(parameters));
+    } else if (command == "show_track") {
+      std::chrono::seconds elapsed;
+      auto track = player_ctl_->GetCurrentTrackInfo(&elapsed);
+      PrintTrackInfo(track, &elapsed);
+    } else if (command == "remove_track") {
+      player_ctl_->RemoveTrack(std::move(parameters));
+    } else if (command == "remove_duplicates") {
+      player_ctl_->RemoveDuplicateTrack();
+    } else if (command == "show_playlist") {
+      player_ctl_->ShowPlaylist();
+    } else if (command == "help") {
+      PrintHelp();
+    } else {
+      std::cout << "Error: unknown command '" << command << "'" << std::endl;
+    }
+  } catch (const std::exception& e) {
+    LOG("[E] %s", e.what());
   }
 }
 

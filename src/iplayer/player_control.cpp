@@ -53,8 +53,6 @@ void PlayerControl::Stop() {
 }
 
 void PlayerControl::Next() {
-  TrackLocation track;
-
   std::lock_guard<std::mutex> lock(mutex_);
   if (playlist_.Remaining() == 0) {
     if (!repeat_playlist_) {
@@ -63,31 +61,28 @@ void PlayerControl::Next() {
     }
     // continue with first item in the playlist
     LOG("[D] repeat_playlist mode on, restarting playlist");
-    track = playlist_.SeekTrack(0, Playlist::SeekWay::kBegin);
+    auto info = playlist_.SeekTrack(0, Playlist::SeekWay::kBegin);
+    PlayTrack(info.Location());
   } else {
-    track = playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent);
+    auto info = playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent);
+    PlayTrack(info.Location());
   }
-  PlayTrack(track);
 }
 
 void PlayerControl::Previous() {
   std::lock_guard<std::mutex> lock(mutex_);
-  try {
-    auto track = playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent);
-    PlayTrack(track);
-  } catch (const std::exception& e) {
-    LOG("[D] %s", e.what());
-  }
+  auto track = playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent);
+  PlayTrack(track.Location());
 }
 
 void PlayerControl::RestartCurrentTrack() {
   std::lock_guard<std::mutex> lock(mutex_);
   try {
     auto track = playlist_.CurrentTrack();
-    PlayTrack(track);
+    PlayTrack(track.Location());
   } catch (const std::exception& e) {
     LOG("[D] %s", e.what());
-    // videolan play the next one (which index became equal to current)
+    // videolan plays the next one (which index became equal to current)
     StopAndSeekBegin();
   }
 }
@@ -146,26 +141,24 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
                                        std::move(on_completion));
 }
 
-void PlayerControl::AddTrack(const TrackLocation& track_location) {
+void PlayerControl::AddTrack(const TrackLocation& location) {
   std::lock_guard<std::mutex> lock(mutex_);
-  std::cout << "Added " << track_location << std::endl;
-  playlist_.AddTrack({track_location});
+  std::cout << "Added " << location << std::endl;
+  playlist_.AddTrack({location});
+
+  // should be done async (with a lock)
+  auto provider = std::make_unique<FsTrackProvider>();
+  auto track_info = provider->GetTrackInfo(location);
+  playlist_.SetTrackInfo({{location, std::move(track_info)}});
 }
 
-// TODO: display on stdout should be done from cli_ui
-void PlayerControl::ShowTrack() const {
+TrackInfo PlayerControl::GetCurrentTrackInfo(
+    std::chrono::seconds* elapsed) const {
   std::lock_guard<std::mutex> lock(mutex_);
-  std::chrono::seconds elapsed(0);
-  if (decoder_) {
-    elapsed = decoder_->GetPlayedTime();
+  if (elapsed && decoder_) {
+    *elapsed = decoder_->GetPlayedTime();
   }
-
-  std::cout << "Track: " << std::endl
-            << playlist_.CurrentTrack() << std::endl
-            << "Duration: " << std::endl
-            << "Elapsed: " << elapsed.count() << " sec" << std::endl
-            << "Title: " << std::endl
-            << "Codec: " << std::endl;
+  return playlist_.CurrentTrack();
 }
 
 // TODO: Playlist::RemoveTrack could notify if current track has been deleted
@@ -181,13 +174,13 @@ void PlayerControl::RemoveDuplicateTrack() {
 }
 
 void PlayerControl::ShowPlaylist() const {
-  std::vector<TrackLocation> tracks;
+  std::deque<TrackInfo> tracks;
   {
     std::lock_guard<std::mutex> lock(mutex_);
     tracks = playlist_.GetTracks();
   }
   for (const auto& track : tracks) {
-    std::cout << track << std::endl;
+    std::cout << track.Location() << std::endl;
   }
 }
 

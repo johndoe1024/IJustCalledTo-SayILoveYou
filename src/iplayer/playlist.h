@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vector>
 #include <deque>
+#include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
-#include "iplayer/track_location.h"
+#include "iplayer/track_info.h"
 
 namespace ip {
 
@@ -16,18 +17,19 @@ class Playlist {
   Playlist();
 
   void AddTrack(const std::vector<TrackLocation>& tracks);
+  void SetTrackInfo(const std::unordered_map<TrackLocation, TrackInfo>& tracks);
   void RemoveTrack(const std::unordered_set<TrackLocation>& tracks);
   void RemoveDuplicate();
 
-  std::vector<TrackLocation> GetTracks() const;
-  TrackLocation SeekTrack(int64_t pos, SeekWay offset_type);
-  TrackLocation CurrentTrack() const;
+  std::deque<TrackInfo> GetTracks() const;
+  TrackInfo SeekTrack(int64_t pos, SeekWay offset_type);
+  TrackInfo CurrentTrack() const;
   size_t Remaining() const;
 
  private:
   void RemoveTrack(std::vector<TrackId> track_ids);
 
-  std::deque<TrackLocation> playlist_;
+  std::deque<TrackInfo> playlist_;
   TrackId current_track_;
 };
 
