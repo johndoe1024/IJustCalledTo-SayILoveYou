@@ -27,9 +27,13 @@ add_executable(iplayer
                utils/exec_queue.cpp
                )
 
-target_compile_features(iplayer PRIVATE cxx_std_14)
-#target_compile_options(iplayer PRIVATE -Wall)
+if (OPTION_IPLAYER_ENABLE_LOG)
+  set(IPLAYER_ENABLE_LOG "IPLAYER_ENABLE_LOG")
+endif()
+
 target_compile_definitions(iplayer PRIVATE
-                           #IPLAYER_ENABLE_LOG
+                           ${IPLAYER_ENABLE_LOG}
                            IPLAYER_VERSION="${IPLAYER_VERSION}")
+#target_compile_options(iplayer PRIVATE -Wall)
+target_compile_features(iplayer PRIVATE cxx_std_14)
 target_link_libraries(iplayer PRIVATE pthread)
