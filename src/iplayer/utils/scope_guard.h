@@ -20,6 +20,11 @@ class ScopeGuard {
     } catch (...) {
     }
   }
+
+  ScopeGuard(ScopeGuard&&) = default;
+  ScopeGuard(const ScopeGuard&) = delete;
+  void operator=(const ScopeGuard&) = delete;
+
   void Cancel() { cancelled_ = true; }
 
  private:
