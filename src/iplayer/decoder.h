@@ -11,8 +11,6 @@
 namespace ip {
 
 class Decoder {
-  enum class Status { kThreadRunning, kThreadPaused, kThreadExit };
-
  public:
   using CompletionCb = std::function<void(const std::error_code&)>;
 
@@ -30,9 +28,10 @@ class Decoder {
                      TrackLocation track, CompletionCb completion_cb);
 
   std::mutex pause_mutex_;
+  std::condition_variable pause_cv_;
   std::atomic<bool> exit_decoder_thread_;
   std::atomic<std::chrono::seconds> played_time_;
-  Status status_;
+  std::atomic<bool> paused_;
   std::future<void> decoder_future_;
 };
 

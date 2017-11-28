@@ -9,30 +9,24 @@ namespace ip {
 
 Decoder::Decoder(std::unique_ptr<ITrackProvider> provider,
                  const TrackLocation& track, CompletionCb cb)
-    : exit_decoder_thread_(false), status_(Status::kThreadRunning) {
-
+    : exit_decoder_thread_(false) {
   decoder_future_ = std::async(std::launch::async, &Decoder::DecoderThread,
                                this, std::move(provider), track, cb);
 }
 
 Decoder::~Decoder() {
   exit_decoder_thread_ = true;
-  if (status_ == Status::kThreadPaused) {
-    Unpause();
-  }
-  status_ = Status::kThreadExit;
+  Unpause();
 }
 
-void Decoder::Pause() {
-  assert(status_ == Status::kThreadRunning);
-  pause_mutex_.lock();
-  status_ = Status::kThreadPaused;
-}
+void Decoder::Pause() { paused_ = true; }
 
 void Decoder::Unpause() {
-  assert(status_ == Status::kThreadPaused);
-  pause_mutex_.unlock();
-  status_ = Status::kThreadRunning;
+  {
+    std::lock_guard<std::mutex> lock(pause_mutex_);
+    paused_ = false;
+    pause_cv_.notify_one();
+  }
 }
 
 std::chrono::seconds Decoder::GetPlayedTime() const { return played_time_; }
@@ -51,7 +45,8 @@ void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
   });
 
   // simulate processing
-  std::chrono::seconds elapsed(0);
+  size_t loop_count = 0;
+  std::chrono::milliseconds elapsed(0);
   auto track_info = provider->GetTrackInfo(location);
   auto duration = track_info.Duration();
   while (elapsed < duration) {
@@ -59,8 +54,11 @@ void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
       LOG("[D] exiting");
       return;
     }
-    // pause (TODO: use a condition variable instead)
-    { std::lock_guard<std::mutex> lock(pause_mutex_); }
+
+    {
+      std::unique_lock<std::mutex> lock(pause_mutex_);
+      pause_cv_.wait(lock, [this]() { return paused_ == false; });
+    }
 
     // update time spent playing the track
     auto start = std::chrono::steady_clock::now();

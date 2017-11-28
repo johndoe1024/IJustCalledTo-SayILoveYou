@@ -43,8 +43,9 @@ void PlayerControl::Pause() {
   if (status_ != Status::kPlay) {
     return;
   }
-  assert(decoder_);
-  decoder_->Pause();
+  if (decoder_) {
+    decoder_->Pause();
+  }
 }
 
 void PlayerControl::Stop() {
@@ -119,8 +120,7 @@ void PlayerControl::StopAndSeekBegin() {
 
 void PlayerControl::PlayTrack(const TrackLocation& track) {
   // this handler will be called from decoder's thread context just before
-  // returning, it mustn't call directly PlayerControl methods that's why every
-  // handlers will queue execution in Core's thread context
+  // returning, it mustn't call directly PlayerControl methods
   auto on_completion = [this](const std::error_code& ec) {
     if (ec) {
       LOG("[D] completion callback error: %s (%d)", ec.message().c_str(),
