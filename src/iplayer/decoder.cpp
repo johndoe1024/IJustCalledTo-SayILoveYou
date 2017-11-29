@@ -69,7 +69,7 @@ void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
     played_time_.store(
         std::chrono::duration_cast<std::chrono::seconds>(elapsed));
 
-    if (loop_count++ % 10 == 0) {
+    if (loop_count++ % 100 == 0) {
       using namespace std::chrono;
       LOG("[D] chunk of %s (%02lu:%02lu / %02lu:%02lu)", location.c_str(),
           duration_cast<minutes>(elapsed).count(),
