@@ -95,7 +95,7 @@ void PlayerControl::SetRepeatTrackEnabled(bool value) {
 
 void PlayerControl::SetRandomTrackEnabled(bool value) {
   std::lock_guard<std::mutex> lock(mutex_);
-  random_mode_ = value;
+  playlist_.SetModeRandom(value);
 }
 
 void PlayerControl::Unpause() {

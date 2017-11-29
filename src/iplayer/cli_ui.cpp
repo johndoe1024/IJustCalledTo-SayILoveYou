@@ -18,7 +18,8 @@ void PrintHelp() {
             << "next                        next track (unpause)" << std::endl
             << "stop                        stop and return at start of playlist" << std::endl
             << "repeat_track on/off         current track will repeat" << std::endl
-            << "repeat_playlist on/off      playlist will restart to play"  << std::endl
+            << "repeat_playlist on/off      playlist will restart when finished"  << std::endl
+            << "random_track on/off         play random tracks from playlist"  << std::endl
             << "add_track [track_name]      add track (metadata is dynamically created)" << std::endl
             << "show_track                  display information about current track" << std::endl
             << "remove_track [track_name]   remove 'track_name" << std::endl
@@ -69,6 +70,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       player_ctl_->SetRepeatTrackEnabled(parameters == "on");
     } else if (command == "repeat_playlist") {
       player_ctl_->SetRepeatPlaylistEnabled(parameters == "on");
+    } else if (command == "random_track") {
+      player_ctl_->SetRandomTrackEnabled(parameters == "on");
     } else if (command == "add_track") {
       TrackLocation track = parameters;
       player_ctl_->AddTrack(std::move(parameters));
