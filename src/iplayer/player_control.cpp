@@ -20,22 +20,17 @@ void PlayerControl::Exit() {
   core_->Stop();
 }
 
-// TODO: move try/catch into caller
 void PlayerControl::Play() {
   std::lock_guard<std::mutex> lock(mutex_);
-  try {
-    if (status_ == Status::kPause) {
-      Unpause();
-      return;
-    }
-    if (status_ == Status::kPlay) {
-      return;
-    }
-    auto track = playlist_.SeekTrack(0, Playlist::SeekWay::kCurrent);
-    PlayTrack(track);
-  } catch (const std::exception& e) {
-    LOG("[E] %s", e.what());
+  if (status_ == Status::kPause) {
+    Unpause();
+    return;
   }
+  if (status_ == Status::kPlay) {
+    return;
+  }
+  auto track = playlist_.SeekTrack(0, Playlist::SeekWay::kCurrent);
+  PlayTrack(track.Location());
 }
 
 void PlayerControl::Pause() {
