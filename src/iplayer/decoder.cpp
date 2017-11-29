@@ -62,18 +62,21 @@ void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
 
     // update time spent playing the track
     auto start = std::chrono::steady_clock::now();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    elapsed += std::chrono::duration_cast<std::chrono::seconds>(
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    elapsed += std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - start);
 
-    played_time_.store(elapsed);
+    played_time_.store(
+        std::chrono::duration_cast<std::chrono::seconds>(elapsed));
 
-    LOG("[D] chunk of %s (%02lu:%02lu / %02lu:%02lu)", location.c_str(),
-        std::chrono::duration_cast<std::chrono::minutes>(elapsed).count(),
-        std::chrono::duration_cast<std::chrono::seconds>(elapsed).count() % 60,
-        std::chrono::duration_cast<std::chrono::minutes>(duration).count(),
-        std::chrono::duration_cast<std::chrono::seconds>(duration).count() %
-            60);
+    if (loop_count++ % 10 == 0) {
+      using namespace std::chrono;
+      LOG("[D] chunk of %s (%02lu:%02lu / %02lu:%02lu)", location.c_str(),
+          duration_cast<minutes>(elapsed).count(),
+          duration_cast<seconds>(elapsed).count() % 60,
+          duration_cast<minutes>(duration).count(),
+          duration_cast<seconds>(duration).count() % 60);
+    }
   }
 
   ec.clear();  // clear error code on success for completion_handler

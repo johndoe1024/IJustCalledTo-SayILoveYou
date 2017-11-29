@@ -42,17 +42,10 @@ target_link_libraries(iplayer_test_lib INTERFACE pthread)
 
 link_libraries(iplayer_test_lib)
 
+# test playlist add/remove/remove dup...
+add_executable(playlist_test playlist_test.cpp)
+add_test(NAME playlist_test COMMAND playlist_test)
+
 # test concurrency
 add_executable(monkey_test monkey_test.cpp)
 add_test(NAME monkey_test COMMAND monkey_test)
-
-#remove_track.cpp
-#show_playlist.cpp
-#remove_duplicates_test.cpp
-#repeat_track.cpp
-#show_track.cpp
-#repeat_playlist.cpp
-#switch_track.cpp
-#add_track.cpp
-
-
