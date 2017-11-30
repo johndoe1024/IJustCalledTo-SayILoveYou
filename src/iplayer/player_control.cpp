@@ -26,7 +26,8 @@ void PlayerControl::Play() {
     return;
   }
   TrackInfo track;
-  if (!playlist_.SeekTrack(0, Playlist::SeekWay::kCurrent, &track)) {
+  auto ec = playlist_.SeekTrack(0, Playlist::SeekWay::kCurrent, &track);
+  if (ec) {
     StopAndSeekBegin();
     return;
   }
@@ -51,7 +52,8 @@ void PlayerControl::Stop() {
 void PlayerControl::Next() {
   std::lock_guard<std::mutex> lock(mutex_);
   TrackInfo track;
-  if(!playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent, &track)) {
+  auto ec = playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent, &track);
+  if (ec) {
     StopAndSeekBegin();
     return;
   }
@@ -61,7 +63,8 @@ void PlayerControl::Next() {
 void PlayerControl::Previous() {
   std::lock_guard<std::mutex> lock(mutex_);
   TrackInfo track;
-  if(!playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent, &track)) {
+  auto ec = playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent, &track);
+  if (ec) {
     StopAndSeekBegin();
     return;
   }
@@ -71,7 +74,8 @@ void PlayerControl::Previous() {
 void PlayerControl::RestartCurrentTrack() {
   std::lock_guard<std::mutex> lock(mutex_);
   TrackInfo track;
-  if (!playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent, &track)) {
+  auto ec = playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent, &track);
+  if (ec) {
     StopAndSeekBegin();
     return;
   }
