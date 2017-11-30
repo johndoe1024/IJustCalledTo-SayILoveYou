@@ -3,6 +3,7 @@
 
 #include <future>
 #include <iostream>
+#include <thread>
 
 #include "test_ui_main.h"
 
@@ -14,62 +15,64 @@ int main(int, char* []) {
 
 namespace ip {
 
+std::vector<TrackLocation> CreateTrackLocations(size_t count, size_t repeat) {
+  std::vector<TrackLocation> locations;
+  for (size_t r = 0; r < repeat; ++r) {
+    for (size_t i = 0; i < count; ++i) {
+      locations.push_back("foo_" + std::to_string(i));
+    }
+  }
+  return locations;
+}
+
 void test_ui_main(IPlayerControl* player) {
-  try {
-    {
-      std::vector<std::future<void>> futures;
-      for (size_t i = 0; i < 50; ++i) {
+  {
+    player->AddTrack(CreateTrackLocations(500, 3));
+    std::vector<std::thread> threads;
+    try {
+      for (size_t i = 0; i < 500; ++i) {
+        std::this_thread::yield();
         std::string random_name("music" + std::to_string(i % 32));
 
-        auto add_track = [&]() { player->AddTrack(random_name); };
-        futures.push_back(std::async(std::launch::async, add_track));
-
+        auto add_track = [&]() { player->AddTrack({random_name}); };
+        threads.push_back(std::thread(std::move(add_track)));
         auto remove_duplicates = [&]() { player->RemoveDuplicateTrack(); };
-        futures.push_back(std::async(std::launch::async, remove_duplicates));
-
+        threads.push_back(std::thread(std::move(remove_duplicates)));
         auto remove_track = [&]() { player->RemoveTrack("random_name"); };
-        futures.push_back(std::async(std::launch::async, remove_track));
-
+        threads.push_back(std::thread(std::move(remove_track)));
         auto play = [&]() { player->Play(); };
-        futures.push_back(std::async(std::launch::async, play));
-
+        threads.push_back(std::thread(std::move(play)));
         auto pause = [&]() { player->Pause(); };
-        futures.push_back(std::async(std::launch::async, pause));
-
+        threads.push_back(std::thread(std::move(pause)));
         auto restart_current = [&]() { player->RestartCurrentTrack(); };
-        futures.push_back(std::async(std::launch::async, restart_current));
-
+        threads.push_back(std::thread(std::move(restart_current)));
         auto show_playlist = [&]() { player->ShowPlaylist(); };
-        futures.push_back(std::async(std::launch::async, show_playlist));
-
+        threads.push_back(std::thread(std::move(show_playlist)));
         auto next = [&]() { player->Next(); };
-        futures.push_back(std::async(std::launch::async, next));
-
+        threads.push_back(std::thread(std::move(next)));
         auto previous = [&]() { player->Previous(); };
-        futures.push_back(std::async(std::launch::async, previous));
-
+        threads.push_back(std::thread(std::move(previous)));
         auto set_random_track = [&]() { player->SetRandomTrackEnabled(true); };
-        futures.push_back(std::async(std::launch::async, set_random_track));
-
+        threads.push_back(std::thread(std::move(set_random_track)));
         auto repeat_playlist = [&]() {
           player->SetRepeatPlaylistEnabled(true);
         };
-        futures.push_back(std::async(std::launch::async, repeat_playlist));
-
+        threads.push_back(std::thread(std::move(repeat_playlist)));
         auto repeat_track = [&]() { player->SetRepeatTrackEnabled(true); };
-        futures.push_back(std::async(std::launch::async, repeat_track));
-
+        threads.push_back(std::thread(std::move(repeat_track)));
         auto get_current_track = [&]() {
           player->GetCurrentTrackInfo(nullptr);
         };
-        futures.push_back(std::async(std::launch::async, get_current_track));
+        threads.push_back(std::thread(std::move(get_current_track)));
       }
-      for (auto& future : futures) {
-        future.get();  // forward exceptions
-      }
+    } catch (std::exception& e) {
+      // 'Resource temporarily unavailable' with too many threads, std::async
+      // as a very low number of available threads
+      std::cerr << e.what() << std::endl;
     }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
+    for (auto& thread : threads) {
+      thread.join();
+    }
   }
   player->Exit();
 }
