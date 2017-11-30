@@ -37,7 +37,7 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
   // update random map
   for (size_t i = 0; i < tracks.size(); ++i) {
     // append new indexes and randomize their positions
-    real_to_random_.push_back(static_cast<TrackId>(playlist_.size() + i));
+    real_to_random_.push_back(static_cast<TrackId>(playlist_.size() + i - 1));
     std::uniform_int_distribution<TrackId> random_index_generator(
         0, static_cast<TrackId>(playlist_.size()));
     std::iter_swap(std::rbegin(real_to_random_),
