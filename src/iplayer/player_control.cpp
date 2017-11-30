@@ -129,14 +129,24 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
                                        std::move(on_completion));
 }
 
-void PlayerControl::AddTrack(const TrackLocation& location) {
+void PlayerControl::AddTrack(const std::vector<TrackLocation>& locations) {
   std::lock_guard<std::mutex> lock(mutex_);
-  playlist_.AddTrack({location});
+  // add track without its metadata and get those aync to keep responsive ui
+  playlist_.AddTrack(locations);
 
-  // should be done async (with a lock)
-  auto provider = std::make_unique<FsTrackProvider>();
-  auto track_info = provider->GetTrackInfo(location);
-  playlist_.SetTrackInfo({{location, std::move(track_info)}});
+  auto get_all_info = [this, locations]() {
+    auto provider = std::make_unique<FsTrackProvider>();
+    std::unordered_map<TrackLocation, TrackInfo> infos;
+    for (const auto& location : locations) {
+      auto track = provider->GetTrackInfo(location);
+      infos.insert({location, track});
+    }
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      playlist_.SetTrackInfo(std::move(infos));
+    }
+  };
+  core_->QueueExecution(get_all_info);
 }
 
 TrackInfo PlayerControl::GetCurrentTrackInfo(

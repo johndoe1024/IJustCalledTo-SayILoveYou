@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <vector>
 
 #include "iplayer/track_location.h"
 #include "iplayer/track_info.h"
@@ -22,7 +23,7 @@ class IPlayerControl {
   virtual void SetRepeatPlaylistEnabled(bool enable) = 0;
   virtual void SetRandomTrackEnabled(bool value) = 0;
 
-  virtual void AddTrack(const TrackLocation& track_location) = 0;
+  virtual void AddTrack(const std::vector<TrackLocation>& track_location) = 0;
   virtual TrackInfo GetCurrentTrackInfo(
       std::chrono::seconds* elapsed) const = 0;
   virtual void RemoveTrack(const TrackLocation& track_location) = 0;

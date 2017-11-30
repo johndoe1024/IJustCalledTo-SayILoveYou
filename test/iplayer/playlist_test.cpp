@@ -29,7 +29,7 @@ bool CaseAddTrack() {
 
 bool CaseRemoveTrack() {
   Playlist playlist;
-  auto locations = CreateTrackLocations(1000000, 3);
+  auto locations = CreateTrackLocations(100000, 3);
   playlist.AddTrack(locations);
 
   std::unordered_set<TrackLocation> to_rm{"foo_0", "foo_1000"};

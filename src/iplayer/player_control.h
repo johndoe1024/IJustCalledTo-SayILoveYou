@@ -28,7 +28,7 @@ class PlayerControl : public IPlayerControl {
   void SetRepeatPlaylistEnabled(bool enable) override;
   void SetRandomTrackEnabled(bool value) override;
 
-  void AddTrack(const TrackLocation& track_location) override;
+  void AddTrack(const std::vector<TrackLocation>& track_location) override;
   TrackInfo GetCurrentTrackInfo(std::chrono::seconds* elapsed) const override;
   void RemoveTrack(const TrackLocation& track_location) override;
   void RemoveDuplicateTrack() override;

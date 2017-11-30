@@ -86,7 +86,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       player_ctl_->SetRandomTrackEnabled(parameters == "on");
     } else if (command == "add_track") {
       TrackLocation track = parameters;
-      player_ctl_->AddTrack(parameters);
+      player_ctl_->AddTrack({parameters});
       std::cout << "Added " << parameters << std::endl;
     } else if (command == "show_track" || command == "s") {
       std::chrono::seconds elapsed;
