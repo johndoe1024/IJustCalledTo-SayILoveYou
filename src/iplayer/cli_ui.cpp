@@ -47,6 +47,15 @@ void PrintTrackInfo(const TrackInfo& track, std::chrono::seconds* elapsed) {
             << "Codec: " << track.Codec() << std::endl;
 }
 
+void PrintPlaylistInfo(const std::deque<TrackInfo>& playlist) {
+  for (const auto& track : playlist) {
+    std::cout << track.Location() << " - ["
+              << std::to_string(track.TrackNumber()) << "] - "
+              << std::to_string(track.Duration().count()) << "s - "
+              << track.Title() << std::endl;
+  }
+}
+
 Cli::Cli(std::unique_ptr<IPlayerControl> player_ctl)
     : player_ctl_(std::move(player_ctl)) {}
 
@@ -60,6 +69,9 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   try {
     if (command == "play") {
       player_ctl_->Play();
+      auto track = player_ctl_->GetCurrentTrackInfo(nullptr);
+      std::cout << "Playing " << track.Title() << " (" << track.Location()
+                << ")" << std::endl;
     } else if (command == "next") {
       player_ctl_->Next();
     } else if (command == "prev") {
@@ -74,7 +86,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       player_ctl_->SetRandomTrackEnabled(parameters == "on");
     } else if (command == "add_track") {
       TrackLocation track = parameters;
-      player_ctl_->AddTrack(std::move(parameters));
+      player_ctl_->AddTrack(parameters);
+      std::cout << "Added " << parameters << std::endl;
     } else if (command == "show_track") {
       std::chrono::seconds elapsed;
       auto track = player_ctl_->GetCurrentTrackInfo(&elapsed);
@@ -84,7 +97,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     } else if (command == "remove_duplicates") {
       player_ctl_->RemoveDuplicateTrack();
     } else if (command == "show_playlist") {
-      player_ctl_->ShowPlaylist();
+      auto playlist = player_ctl_->ShowPlaylist();
+      PrintPlaylistInfo(playlist);
     } else if (command == "help") {
       PrintHelp();
     } else {
@@ -92,6 +106,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     }
   } catch (const std::exception& e) {
     LOG("[E] %s", e.what());
+    std::cerr << e.what();
   }
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#define UNUSED(x) (void)(x)
+
 #ifdef IPLAYER_ENABLE_LOG
 
 #include <stdio.h>

@@ -1,7 +1,6 @@
 #include "iplayer/player_control.h"
 
 #include <assert.h>
-#include <iostream>
 
 #include "iplayer/fs_track_provider.h"
 #include "iplayer/log.h"
@@ -77,6 +76,7 @@ void PlayerControl::RestartCurrentTrack() {
     auto track = playlist_.CurrentTrack();
     PlayTrack(track.Location());
   } catch (const std::exception& e) {
+    UNUSED(e);
     LOG("[D] %s", e.what());
     // videolan plays the next one (which index became equal to current)
     StopAndSeekBegin();
@@ -130,7 +130,6 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
     }
   };
   status_ = Status::kPlay;
-  std::cout << "Playing " << track << std::endl;
   auto provider = std::make_unique<FsTrackProvider>();
   decoder_ = std::make_unique<Decoder>(std::move(provider), track,
                                        std::move(on_completion));
@@ -138,7 +137,6 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
 
 void PlayerControl::AddTrack(const TrackLocation& location) {
   std::lock_guard<std::mutex> lock(mutex_);
-  std::cout << "Added " << location << std::endl;
   playlist_.AddTrack({location});
 
   // should be done async (with a lock)
@@ -168,15 +166,13 @@ void PlayerControl::RemoveDuplicateTrack() {
   playlist_.RemoveDuplicate();
 }
 
-void PlayerControl::ShowPlaylist() const {
+std::deque<TrackInfo> PlayerControl::ShowPlaylist() const {
   std::deque<TrackInfo> tracks;
   {
     std::lock_guard<std::mutex> lock(mutex_);
     tracks = playlist_.GetTracks();
   }
-  for (const auto& track : tracks) {
-    std::cout << track.Location() << std::endl;
-  }
+  return tracks;
 }
 
 }  // namespace ip
