@@ -27,7 +27,6 @@ add_library(iplayer_test_lib STATIC
             ${IPLAYER_SRC_DIR}/iplayer/playlist.h
             ${IPLAYER_SRC_DIR}/iplayer/playlist.cpp
             ${IPLAYER_SRC_DIR}/iplayer/track_location.h
-            ${IPLAYER_SRC_DIR}/iplayer/track_location.cpp
             ${IPLAYER_SRC_DIR}/iplayer/track_info.h
             ${IPLAYER_SRC_DIR}/iplayer/utils/scope_guard.h
             ${IPLAYER_SRC_DIR}/iplayer/utils/exec_queue.h

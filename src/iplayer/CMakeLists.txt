@@ -20,11 +20,10 @@ add_executable(iplayer
                playlist.h
                playlist.cpp
                track_location.h
-               track_location.cpp
                track_info.h
-               utils/scope_guard.h
                utils/exec_queue.h
                utils/exec_queue.cpp
+               utils/scope_guard.h
                )
 
 if (OPTION_IPLAYER_ENABLE_LOG)

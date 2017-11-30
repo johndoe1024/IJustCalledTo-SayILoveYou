@@ -13,18 +13,18 @@ void PrintHelp() {
   std::cout << std::endl << "Welcome to Imaginary Player " IPLAYER_VERSION << std::endl << std::endl;
   std::cout << "Commands:" << std::endl
             << "---------" << std::endl
-            << "play                        play playlist's current track" << std::endl
-            << "prev                        previous track (unpause)" << std::endl
-            << "next                        next track (unpause)" << std::endl
+            << "play / p                    play playlist's current track" << std::endl
+            << "prev / b                    previous track (unpause)" << std::endl
+            << "next / n                    next track (unpause)" << std::endl
             << "stop                        stop and return at start of playlist" << std::endl
             << "repeat_track on/off         current track will repeat" << std::endl
             << "repeat_playlist on/off      playlist will restart when finished"  << std::endl
             << "random_track on/off         play random tracks from playlist"  << std::endl
             << "add_track [track_name]      add track (metadata is dynamically created)" << std::endl
-            << "show_track                  display information about current track" << std::endl
+            << "show_track / s              display information about current track" << std::endl
             << "remove_track [track_name]   remove 'track_name" << std::endl
             << "remove_duplicates           remove duplicate track" << std::endl
-            << "show_playlist               show playlist" << std::endl
+            << "show_playlist / pl          show playlist" << std::endl
             << std::endl
             << "Use 'help' to display this message. Use 'exit' or 'quit' for leaving" << std::endl
             << std::endl;
@@ -67,14 +67,14 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   }
 
   try {
-    if (command == "play") {
+    if (command == "play" || command == "p") {
       player_ctl_->Play();
       auto track = player_ctl_->GetCurrentTrackInfo(nullptr);
       std::cout << "Playing " << track.Title() << " (" << track.Location()
                 << ")" << std::endl;
-    } else if (command == "next") {
+    } else if (command == "next" || command == "n") {
       player_ctl_->Next();
-    } else if (command == "prev") {
+    } else if (command == "prev" || command == "b") {
       player_ctl_->Previous();
     } else if (command == "stop") {
       player_ctl_->Stop();
@@ -88,7 +88,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       TrackLocation track = parameters;
       player_ctl_->AddTrack(parameters);
       std::cout << "Added " << parameters << std::endl;
-    } else if (command == "show_track") {
+    } else if (command == "show_track" || command == "s") {
       std::chrono::seconds elapsed;
       auto track = player_ctl_->GetCurrentTrackInfo(&elapsed);
       PrintTrackInfo(track, &elapsed);
@@ -96,7 +96,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       player_ctl_->RemoveTrack(std::move(parameters));
     } else if (command == "remove_duplicates") {
       player_ctl_->RemoveDuplicateTrack();
-    } else if (command == "show_playlist") {
+    } else if (command == "show_playlist" || command == "pl") {
       auto playlist = player_ctl_->ShowPlaylist();
       PrintPlaylistInfo(playlist);
     } else if (command == "help") {
@@ -109,6 +109,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     std::cerr << e.what();
   }
 }
+
 
 void Cli::Run() {
   cli_future_ = std::async(std::launch::async, [&]() { UiThread(); });

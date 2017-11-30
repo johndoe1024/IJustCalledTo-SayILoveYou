@@ -8,10 +8,7 @@
 namespace ip {
 
 PlayerControl::PlayerControl(Core* core)
-    : core_(core),
-      status_(Status::kStop),
-      repeat_playlist_(false),
-      repeat_track_(false) {}
+    : core_(core), status_(Status::kStop) {}
 
 void PlayerControl::Exit() {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -28,7 +25,11 @@ void PlayerControl::Play() {
   if (status_ == Status::kPlay) {
     return;
   }
-  auto track = playlist_.SeekTrack(0, Playlist::SeekWay::kCurrent);
+  TrackInfo track;
+  if (!playlist_.SeekTrack(0, Playlist::SeekWay::kCurrent, &track)) {
+    StopAndSeekBegin();
+    return;
+  }
   PlayTrack(track.Location());
 }
 
@@ -49,48 +50,42 @@ void PlayerControl::Stop() {
 
 void PlayerControl::Next() {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (playlist_.Remaining() == 0) {
-    if (!repeat_playlist_) {
-      StopAndSeekBegin();
-      return;
-    }
-    // continue with first item in the playlist
-    LOG("[D] repeat_playlist mode on, restarting playlist");
-    auto info = playlist_.SeekTrack(0, Playlist::SeekWay::kBegin);
-    PlayTrack(info.Location());
-  } else {
-    auto info = playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent);
-    PlayTrack(info.Location());
+  TrackInfo track;
+  if(!playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent, &track)) {
+    StopAndSeekBegin();
+    return;
   }
+  PlayTrack(track.Location());
 }
 
 void PlayerControl::Previous() {
   std::lock_guard<std::mutex> lock(mutex_);
-  auto track = playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent);
+  TrackInfo track;
+  if(!playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent, &track)) {
+    StopAndSeekBegin();
+    return;
+  }
   PlayTrack(track.Location());
 }
 
 void PlayerControl::RestartCurrentTrack() {
   std::lock_guard<std::mutex> lock(mutex_);
-  try {
-    auto track = playlist_.CurrentTrack();
-    PlayTrack(track.Location());
-  } catch (const std::exception& e) {
-    UNUSED(e);
-    LOG("[D] %s", e.what());
-    // videolan plays the next one (which index became equal to current)
+  TrackInfo track;
+  if (!playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent, &track)) {
     StopAndSeekBegin();
+    return;
   }
+  PlayTrack(track.Location());
 }
 
 void PlayerControl::SetRepeatPlaylistEnabled(bool value) {
   std::lock_guard<std::mutex> lock(mutex_);
-  repeat_playlist_ = value;
+  playlist_.SetRepeatPlaylistEnabled(value);
 }
 
 void PlayerControl::SetRepeatTrackEnabled(bool value) {
   std::lock_guard<std::mutex> lock(mutex_);
-  repeat_track_ = value;
+  playlist_.SetRepeatTrackEnabled(value);
 }
 
 void PlayerControl::SetRandomTrackEnabled(bool value) {
@@ -109,7 +104,7 @@ void PlayerControl::Unpause() {
 
 void PlayerControl::StopAndSeekBegin() {
   decoder_.reset();
-  playlist_.SeekTrack(0, Playlist::SeekWay::kBegin);
+  playlist_.SeekTrack(0, Playlist::SeekWay::kBegin, nullptr);
   status_ = Status::kStop;
 }
 
@@ -122,12 +117,7 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
           ec.value());
       return;
     }
-    if (repeat_track_) {
-      core_->QueueExecution(
-          std::bind(&PlayerControl::RestartCurrentTrack, this));
-    } else {
-      core_->QueueExecution(std::bind(&PlayerControl::Next, this));
-    }
+    core_->QueueExecution(std::bind(&PlayerControl::Next, this));
   };
   status_ = Status::kPlay;
   auto provider = std::make_unique<FsTrackProvider>();

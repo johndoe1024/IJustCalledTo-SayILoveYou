@@ -1,11 +1,12 @@
 #pragma once
 
 #include <deque>
+#include <functional>
+#include <random>
+#include <system_error>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <functional>
-#include <random>
 
 #include "iplayer/track_info.h"
 
@@ -24,20 +25,24 @@ class Playlist {
   void RemoveDuplicate();
 
   std::deque<TrackInfo> GetTracks() const;
-  TrackInfo SeekTrack(int64_t pos, SeekWay offset_type);
+  std::error_code SeekTrack(int64_t pos, SeekWay offset_type, TrackInfo* track);
   TrackInfo CurrentTrack() const;
   size_t Remaining() const;
 
+  void SetRepeatPlaylistEnabled(bool value);
+  void SetRepeatTrackEnabled(bool value);
   void SetModeRandom(bool value);
   bool IsModeRandom() const;
 
  private:
   void RemoveTrack(std::vector<TrackId> track_ids);
   void Shuffle();
-  void RemoveIf(std::function<bool (const TrackInfo&)> predicate);
+  void RemoveIf(std::function<bool(const TrackInfo&)> predicate);
 
   std::deque<TrackInfo> playlist_;
   TrackId current_track_;
+  bool repeat_playlist_;
+  bool repeat_track_;
   bool random_mode_;
   std::vector<TrackId> real_to_random_;
   std::random_device dev_random_;

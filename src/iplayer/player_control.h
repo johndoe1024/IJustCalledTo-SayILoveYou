@@ -43,9 +43,6 @@ class PlayerControl : public IPlayerControl {
   mutable std::mutex mutex_;
   Core* core_;
   Status status_;
-  bool random_mode_;
-  bool repeat_playlist_;
-  bool repeat_track_;
   std::unique_ptr<Decoder> decoder_;
   Playlist playlist_;
 };

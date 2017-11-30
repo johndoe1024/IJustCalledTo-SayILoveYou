@@ -18,9 +18,15 @@
 namespace ip {
 
 Playlist::Playlist()
-    : current_track_(0), random_mode_(false), prng_(dev_random_()) {}
+    : current_track_(0),
+      repeat_playlist_(false),
+      repeat_track_(false),
+      random_mode_(false),
+      prng_(dev_random_()) {}
 
 void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
+  assert(random_mode_? (playlist_.size() == real_to_random_.size()) : true);
+
   std::transform(std::cbegin(tracks), std::cend(tracks),
                  std::back_inserter(playlist_),
                  [](const TrackLocation& loc) { return TrackInfo{loc}; });
@@ -29,7 +35,6 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
   }
 
   // update random map
-  assert(playlist_.size() == real_to_random_.size());
   for (size_t i = 0; i < tracks.size(); ++i) {
     // append new indexes and randomize their positions
     real_to_random_.push_back(static_cast<TrackId>(playlist_.size() + i));
@@ -85,18 +90,47 @@ void Playlist::SetTrackInfo(
   }
 }
 
-TrackInfo Playlist::SeekTrack(int64_t pos, SeekWay offset_type) {
+std::error_code Playlist::SeekTrack(int64_t pos, SeekWay offset_type,
+                                    TrackInfo* track) {
+  if (repeat_track_) {
+    if (track) {
+      *track = CurrentTrack();
+      return{};
+    }
+  }
+
+  // SeekWay::kBegin
   if (offset_type == SeekWay::kBegin) {
     assert(pos >= 0);
     current_track_ = static_cast<TrackId>(pos);
+    if (playlist_.size() == 0) {
+      return make_error_code(std::errc::no_such_file_or_directory);
+    }
   }
-  // TrackOffsetType::kCurrent
+
+  // SeekWay::kCurrent
   int64_t new_pos = current_track_ + pos;
-  if (new_pos < 0 || static_cast<size_t>(new_pos) >= playlist_.size()) {
+  if (new_pos < 0) {
     current_track_ = 0;
+    return make_error_code(std::errc::no_such_file_or_directory);
+  }
+  if (static_cast<size_t>(new_pos) >= playlist_.size()) {
+    current_track_ = 0;
+    if (repeat_playlist_ == false) {
+      return make_error_code(std::errc::no_such_file_or_directory);
+    }
   } else {
     current_track_ = static_cast<TrackId>(new_pos);
   }
+
+  // set the TrackInfo
+  if (track) {
+    *track = CurrentTrack();
+  }
+  return {};
+}
+
+TrackInfo Playlist::CurrentTrack() const {
   if (random_mode_) {
     return playlist_.at(real_to_random_[current_track_]);
   } else {
@@ -104,14 +138,16 @@ TrackInfo Playlist::SeekTrack(int64_t pos, SeekWay offset_type) {
   }
 }
 
-TrackInfo Playlist::CurrentTrack() const {
-  return playlist_.at(current_track_);
-}
-
 size_t Playlist::Remaining() const {
   assert(current_track_ == 0 ? true : current_track_ < playlist_.size());
   return playlist_.size() - 1 - current_track_;
 }
+
+void Playlist::SetRepeatPlaylistEnabled(bool value) {
+  repeat_playlist_ = value;
+}
+
+void Playlist::SetRepeatTrackEnabled(bool value) { repeat_track_ = value; }
 
 void Playlist::Shuffle() {
   // fill randomized with a range from 0 to playlist_.size and shuffle

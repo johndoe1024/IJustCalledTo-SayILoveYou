@@ -11,6 +11,8 @@ namespace ip {
 
 class TrackInfo {
  public:
+  TrackInfo() {}
+
   TrackInfo(const TrackLocation& location) : location_(location) {}
 
   TrackInfo(const TrackLocation& location, const std::string& title,
