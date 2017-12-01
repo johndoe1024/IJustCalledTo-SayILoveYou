@@ -219,6 +219,9 @@ void Playlist::SetModeRandom(bool value) {
   random_mode_ = value;
   if (random_mode_) {
     Shuffle();
+  } else {
+    // keep current track with ordered mode
+    current_track_ = random_[current_track_];
   }
 }
 

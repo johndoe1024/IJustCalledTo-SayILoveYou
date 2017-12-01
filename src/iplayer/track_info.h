@@ -11,9 +11,10 @@ namespace ip {
 
 class TrackInfo {
  public:
-  TrackInfo() {}
+  TrackInfo() : number_(0), duration_(0) {}
 
-  TrackInfo(const TrackLocation& location) : location_(location) {}
+  TrackInfo(const TrackLocation& location)
+      : location_(location), number_(0), duration_(0) {}
 
   TrackInfo(const TrackLocation& location, const std::string& title,
             uint32_t number, std::chrono::seconds duration,
@@ -42,5 +43,8 @@ class TrackInfo {
   uint32_t number_;
   std::chrono::seconds duration_;
 };
+
+bool operator==(const TrackInfo& lhs, const TrackInfo& rhs);
+bool operator!=(const TrackInfo& lhs, const TrackInfo& rhs);
 
 }  // namespace ip

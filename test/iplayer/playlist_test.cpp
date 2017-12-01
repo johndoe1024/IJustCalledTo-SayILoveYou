@@ -81,7 +81,7 @@ bool CaseRepeatTrack() {
     return false;
   }
 
-  if (first_track.Location() == track.Location()) {
+  if (first_track == track) {
     return false;
   }
 
@@ -135,25 +135,110 @@ bool CaseRandomPlay() {
   auto locations = CreateTrackLocations(10, 1);
   playlist.AddTrack(locations);
 
-  playlist.SetModeRandom(true);
+  // switch between normal and random mode
+  {
+    auto ordered = playlist.GetTracks();
+    playlist.SetModeRandom(true);
+    auto unordered = playlist.GetTracks();
 
-  std::vector<TrackLocation> play_order;
-  TrackInfo track = playlist.CurrentTrack();
-  for (size_t i = 0; i < locations.size() - 1; ++i) {
-    play_order.push_back(track.Location());
+    // check that play order is different
+    if (std::equal(std::cbegin(ordered), std::cend(ordered),
+                   std::cbegin(unordered))) {
+      return false;
+    }
 
-    ec = playlist.SeekTrack(1, Playlist::SeekWay::kCurrent, &track);
+    // check that order goes back to original order when disabling random
+    playlist.SetModeRandom(false);
+    if (!std::equal(std::cbegin(ordered), std::cend(ordered),
+                    std::cbegin(playlist.GetTracks()))) {
+      return false;
+    }
+  }
+
+  // current track shouldn't change when switching mode back to normal
+  {
+    playlist.SetModeRandom(true);
+    TrackInfo current_track;
+    ec = playlist.SeekTrack(1, Playlist::SeekWay::kCurrent, &current_track);
+    if (ec) {
+      return false;
+    }
+    playlist.SetModeRandom(false);
+    if (current_track != playlist.CurrentTrack()) {
+      return false;
+    }
+    ec = playlist.SeekTrack(0, Playlist::SeekWay::kBegin, nullptr);
     if (ec) {
       return false;
     }
   }
 
-  auto playlist_order = playlist.GetTracks();
-  auto pred = [](const TrackLocation& loc, const TrackInfo& track) {
-    return loc == track.Location();
-  };
-  return std::equal(std::cbegin(play_order), std::cend(play_order),
-                    std::cbegin(playlist_order), pred) == false;
+  // remove some tracks and check that it don't mess with track order
+  {
+    playlist.SetModeRandom(true);
+    auto unordered = playlist.GetTracks();
+    std::unordered_set<TrackLocation> rm_locations{
+        locations[0], locations[2], locations[locations.size() - 1]};
+    playlist.RemoveTrack(rm_locations);
+
+    unordered.erase(
+        std::remove_if(std::begin(unordered), std::end(unordered),
+                       [&](const TrackInfo& track) {
+                         return rm_locations.find(track.Location()) !=
+                                std::end(rm_locations);
+                       }),
+        std::end(unordered));
+
+    if (std::equal(std::cbegin(unordered), std::cend(unordered),
+                   std::cbegin(playlist.GetTracks())) == false) {
+      return false;
+    }
+  }
+
+  // check that added track doesn't mess random order
+  {
+    auto unordered = playlist.GetTracks();
+    ec = playlist.SeekTrack(0, Playlist::SeekWay::kBegin, nullptr);
+    if (ec) {
+      return false;
+    }
+    playlist.AddTrack({"foobar"});
+
+    int max_diff = 1;
+    auto eq_pred = [&](const TrackInfo& lhs, const TrackInfo& rhs) {
+      if (lhs != rhs) {
+        if (max_diff) {
+          --max_diff;
+          return true;
+        }
+        return false;
+      }
+      return true;
+    };
+    std::equal(std::cbegin(unordered), std::cend(unordered),
+               std::cbegin(playlist.GetTracks()), eq_pred);
+  }
+
+  // check that previous track is the previously played random track
+  {
+    auto current = playlist.CurrentTrack();
+    ec = playlist.SeekTrack(1, Playlist::SeekWay::kCurrent, nullptr);
+    if (ec) {
+      return false;
+    }
+    if (current == playlist.CurrentTrack()) {
+      return false;
+    }
+    ec = playlist.SeekTrack(-1, Playlist::SeekWay::kCurrent, nullptr);
+    if (ec) {
+      return false;
+    }
+    if (current != playlist.CurrentTrack()) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 }  // namespace ip
