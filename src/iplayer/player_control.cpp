@@ -65,7 +65,7 @@ void PlayerControl::Previous() {
   std::lock_guard<std::mutex> lock(mutex_);
   TrackInfo track;
   auto ec = playlist_.SeekTrack(-1, Playlist::SeekWay::kCurrent, &track);
-  if (ec) {
+  if (ec && ec != std::errc::no_such_file_or_directory) {
     StopAndSeekBegin();
     return;
   }
