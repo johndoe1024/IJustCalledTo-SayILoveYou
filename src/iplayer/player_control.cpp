@@ -159,8 +159,6 @@ TrackInfo PlayerControl::GetCurrentTrackInfo(
   return playlist_.CurrentTrack();
 }
 
-// TODO: Playlist::RemoveTrack could notify if current track has been deleted
-// so PlayerControl::RemoveTrack could call StopImpl to mimic videolan
 void PlayerControl::RemoveTrack(const TrackLocation& track_location) {
   std::lock_guard<std::mutex> lock(mutex_);
   playlist_.RemoveTrack({track_location});

@@ -70,7 +70,7 @@ void Playlist::RemoveIf(std::function<bool(const TrackInfo&)> pred) {
       offsets[i] = 1;
       continue;
     }
-    *first = *it;
+    *first = std::move(*it);
     ++first;
   }
   playlist_.erase(first, std::end(playlist_));

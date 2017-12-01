@@ -25,6 +25,44 @@ class TrackInfo {
         number_(number),
         duration_(duration) {}
 
+  TrackInfo(TrackInfo&& o)
+      : location_(std::move(o.location_)),
+        codec_(std::move(o.codec_)),
+        title_(std::move(o.title_)),
+        number_(o.number_),
+        duration_(o.duration_) {}
+
+  TrackInfo(const TrackInfo& o)
+      : location_(std::move(o.location_)),
+        codec_(std::move(o.codec_)),
+        title_(std::move(o.title_)),
+        number_(o.number_),
+        duration_(o.duration_) {}
+
+  TrackInfo& operator=(TrackInfo&& o) {
+    if (this == &o) {
+      return *this;
+    }
+    location_ = std::move(o.location_);
+    codec_ = std::move(o.codec_);
+    title_ = std::move(o.title_);
+    number_ = o.number_;
+    duration_ = o.duration_;
+    return *this;
+  }
+
+  TrackInfo& operator=(const TrackInfo& o) {
+    if (this == &o) {
+      return *this;
+    }
+    location_ = o.location_;
+    codec_ = o.codec_;
+    title_ = o.title_;
+    number_ = o.number_;
+    duration_ = o.duration_;
+    return *this;
+  }
+
   void SetTrackNumber(uint32_t number) { number_ = number; }
   void SetTitle(const std::string& title) { title_ = title; }
   void SetDuration(std::chrono::seconds duration) { duration_ = duration; }
