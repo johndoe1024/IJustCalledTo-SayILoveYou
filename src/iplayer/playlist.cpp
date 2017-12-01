@@ -25,7 +25,7 @@ Playlist::Playlist()
       prng_(dev_random_()) {}
 
 void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
-  assert(random_mode_ ? (playlist_.size() == real_to_random_.size()) : true);
+  assert(random_mode_ ? (playlist_.size() == random_.size()) : true);
 
   std::transform(std::cbegin(tracks), std::cend(tracks),
                  std::back_inserter(playlist_),
@@ -34,29 +34,71 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
     return;
   }
 
-  // update random map
+  // append to random map new indexes and randomize their positions
   for (size_t i = 0; i < tracks.size(); ++i) {
-    // append new indexes and randomize their positions
-    real_to_random_.push_back(static_cast<TrackId>(playlist_.size() + i - 1));
+    random_.push_back(static_cast<TrackId>(playlist_.size() + i - 1));
 
-    std::uniform_int_distribution<TrackId> random_index_generator(
+    std::uniform_int_distribution<TrackId> random_index(
         0, static_cast<TrackId>(playlist_.size()));
-    std::iter_swap(std::rbegin(real_to_random_),
-                   std::begin(real_to_random_) + random_index_generator(prng_));
+    std::iter_swap(std::rbegin(random_),
+                   std::begin(random_) + random_index(prng_));
   }
 }
 
 void Playlist::RemoveIf(std::function<bool(const TrackInfo&)> pred) {
-  playlist_.erase(
-      std::remove_if(std::begin(playlist_), std::end(playlist_), pred),
-      std::end(playlist_));
+  if (!random_mode_) {
+    playlist_.erase(
+        std::remove_if(std::begin(playlist_), std::end(playlist_), pred),
+        std::end(playlist_));
+    if (current_track_ >= playlist_.size()) {
+      current_track_ = 0;
+    }
+    return;
+  }
+
+  // It was difficult to keep a complexity close to the one without random
+  // playback, it would be easier to maintain consistency with a std::list.
+  //
+  // Delete entries while setting in 'offset' table the affected indexes
+  std::vector<uint32_t> offsets(playlist_.size());
+
+  auto first = std::begin(playlist_);
+  for (auto it = std::begin(playlist_); it < std::end(playlist_); ++it) {
+    if (pred(*it)) {
+      uint32_t i =
+          static_cast<uint32_t>(std::distance(std::begin(playlist_), it));
+      offsets[i] = 1;
+      continue;
+    }
+    *first = *it;
+    ++first;
+  }
+  playlist_.erase(first, std::end(playlist_));
+
+  // adjust random_ mapping values as some entries were deleted
+  std::vector<TrackId> new_random(random_.size());
+  std::vector<TrackId> offsets_sum(offsets.size());
+  std::partial_sum(std::cbegin(offsets), std::cend(offsets),
+                   std::begin(offsets_sum));
+
+  for (size_t i = 0; i < random_.size(); ++i) {
+    new_random[i] = random_[i] - offsets_sum[random_[i]];
+  }
+
+  // copy the map without the indexes to remove
+  TrackId j = 0;
+  for (TrackId i = 0; i < random_.size(); ++i) {
+    if (offsets[random_[i]]) {
+      continue;
+    }
+    new_random[j] = new_random[i];
+    j++;
+  }
+  new_random.erase(std::begin(new_random) + j, std::end(new_random));
+  std::swap(new_random, random_);
+
   if (current_track_ >= playlist_.size()) {
     current_track_ = 0;
-  }
-  // TODO: find a fast way to update maps and keep order while removing items
-  //       so previous will go back to the same track
-  if (random_mode_) {
-    Shuffle();
   }
 }
 
@@ -80,7 +122,14 @@ void Playlist::RemoveDuplicate() {
 }
 
 Playlist::Container Playlist::GetTracks() const {
-  return playlist_;
+  if (!random_mode_) {
+    return playlist_;
+  }
+  Playlist::Container playlist;
+  for (size_t i = 0; i < playlist_.size(); ++i) {
+    playlist.push_back(playlist_[random_[i]]);
+  }
+  return playlist;
 }
 
 void Playlist::SetTrackInfo(
@@ -135,7 +184,7 @@ std::error_code Playlist::SeekTrack(int64_t pos, SeekWay offset_type,
 
 TrackInfo Playlist::CurrentTrack() const {
   if (random_mode_) {
-    auto it = std::next(std::begin(playlist_), real_to_random_[current_track_]);
+    auto it = std::next(std::begin(playlist_), random_[current_track_]);
     return *it;
   } else {
     auto it = std::next(std::begin(playlist_), current_track_);
@@ -161,9 +210,9 @@ void Playlist::Shuffle() {
   std::shuffle(std::begin(randomized), std::end(randomized), prng_);
 
   // create the mapping between real track id to real id (index on playlist_)
-  real_to_random_.clear();
+  random_.clear();
   std::copy(std::cbegin(randomized), std::cend(randomized),
-            std::back_inserter(real_to_random_));
+            std::back_inserter(random_));
 }
 
 void Playlist::SetModeRandom(bool value) {

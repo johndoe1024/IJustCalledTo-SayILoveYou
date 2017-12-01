@@ -47,7 +47,7 @@ class Playlist {
   bool repeat_playlist_;
   bool repeat_track_;
   bool random_mode_;
-  std::vector<TrackId> real_to_random_;
+  std::vector<TrackId> random_;
   std::random_device dev_random_;
   std::mt19937 prng_;
 };
