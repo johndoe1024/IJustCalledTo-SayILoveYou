@@ -1,10 +1,9 @@
 #pragma once
 
-#include <deque>
 #include <vector>
 
-#include "iplayer/track_location.h"
 #include "iplayer/track_info.h"
+#include "iplayer/track_location.h"
 
 namespace ip {
 
@@ -28,7 +27,7 @@ class IPlayerControl {
       std::chrono::seconds* elapsed) const = 0;
   virtual void RemoveTrack(const TrackLocation& track_location) = 0;
   virtual void RemoveDuplicateTrack() = 0;
-  virtual std::deque<TrackInfo> ShowPlaylist() const = 0;
+  virtual std::vector<TrackInfo> ShowPlaylist() const = 0;
 };
 
 }  // namespace ip

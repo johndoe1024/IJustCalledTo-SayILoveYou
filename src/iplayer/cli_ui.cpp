@@ -47,7 +47,7 @@ void PrintTrackInfo(const TrackInfo& track, std::chrono::seconds* elapsed) {
             << "Codec: " << track.Codec() << std::endl;
 }
 
-void PrintPlaylistInfo(const std::deque<TrackInfo>& playlist) {
+void PrintPlaylistInfo(const std::vector<TrackInfo>& playlist) {
   for (const auto& track : playlist) {
     std::cout << track.Location() << " - ["
               << std::to_string(track.TrackNumber()) << "] - "

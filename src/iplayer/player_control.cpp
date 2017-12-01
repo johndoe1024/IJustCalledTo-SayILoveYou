@@ -1,6 +1,7 @@
 #include "iplayer/player_control.h"
 
 #include <assert.h>
+#include <algorithm>
 
 #include "iplayer/fs_track_provider.h"
 #include "iplayer/log.h"
@@ -170,12 +171,17 @@ void PlayerControl::RemoveDuplicateTrack() {
   playlist_.RemoveDuplicate();
 }
 
-std::deque<TrackInfo> PlayerControl::ShowPlaylist() const {
-  std::deque<TrackInfo> tracks;
+std::vector<TrackInfo> PlayerControl::ShowPlaylist() const {
+  decltype (playlist_.GetTracks()) playlist;
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    tracks = playlist_.GetTracks();
+    playlist = playlist_.GetTracks();
   }
+  std::vector<TrackInfo> tracks;
+  std::transform(std::make_move_iterator(std::begin(playlist)),
+                 std::make_move_iterator(std::end(playlist)),
+                 std::back_inserter(tracks),
+                 [](TrackInfo&& track) { return std::move(track); });
   return tracks;
 }
 
