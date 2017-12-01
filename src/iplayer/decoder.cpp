@@ -9,7 +9,7 @@ namespace ip {
 
 Decoder::Decoder(std::unique_ptr<ITrackProvider> provider,
                  const TrackLocation& track, CompletionCb cb)
-    : exit_decoder_thread_(false) {
+    : exit_decoder_thread_(false), played_time_(std::chrono::seconds(0)) {
   decoder_future_ = std::async(std::launch::async, &Decoder::DecoderThread,
                                this, std::move(provider), track, cb);
 }

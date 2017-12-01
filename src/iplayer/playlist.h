@@ -13,7 +13,6 @@
 
 namespace ip {
 
-
 class Playlist {
  public:
   using Container = std::deque<TrackInfo>;  // deque < vector < list

@@ -153,8 +153,12 @@ void PlayerControl::AddTrack(const std::vector<TrackLocation>& locations) {
 TrackInfo PlayerControl::GetCurrentTrackInfo(
     std::chrono::seconds* elapsed) const {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (elapsed && decoder_) {
-    *elapsed = decoder_->GetPlayedTime();
+  if (elapsed) {
+    if (decoder_) {
+      *elapsed = decoder_->GetPlayedTime();
+    } else {
+      *elapsed = std::chrono::seconds(0);
+    }
   }
   return playlist_.CurrentTrack();
 }
