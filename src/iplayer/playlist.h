@@ -7,13 +7,16 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <list>
 
 #include "iplayer/track_info.h"
 
 namespace ip {
 
+
 class Playlist {
  public:
+  using Container = std::deque<TrackInfo>;  // deque < vector < list
   using TrackId = uint32_t;
   enum class SeekWay { kBegin = 0, kCurrent };
 
@@ -24,7 +27,7 @@ class Playlist {
   void RemoveTrack(const std::unordered_set<TrackLocation>& tracks);
   void RemoveDuplicate();
 
-  std::deque<TrackInfo> GetTracks() const;
+  Container GetTracks() const;
   std::error_code SeekTrack(int64_t pos, SeekWay offset_type, TrackInfo* track);
   TrackInfo CurrentTrack() const;
   size_t Remaining() const;
@@ -39,7 +42,7 @@ class Playlist {
   void Shuffle();
   void RemoveIf(std::function<bool(const TrackInfo&)> predicate);
 
-  std::deque<TrackInfo> playlist_;
+  Container playlist_;
   TrackId current_track_;
   bool repeat_playlist_;
   bool repeat_track_;

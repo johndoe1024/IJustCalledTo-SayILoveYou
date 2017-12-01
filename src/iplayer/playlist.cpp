@@ -25,7 +25,7 @@ Playlist::Playlist()
       prng_(dev_random_()) {}
 
 void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
-  assert(random_mode_? (playlist_.size() == real_to_random_.size()) : true);
+  assert(random_mode_ ? (playlist_.size() == real_to_random_.size()) : true);
 
   std::transform(std::cbegin(tracks), std::cend(tracks),
                  std::back_inserter(playlist_),
@@ -38,6 +38,7 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
   for (size_t i = 0; i < tracks.size(); ++i) {
     // append new indexes and randomize their positions
     real_to_random_.push_back(static_cast<TrackId>(playlist_.size() + i - 1));
+
     std::uniform_int_distribution<TrackId> random_index_generator(
         0, static_cast<TrackId>(playlist_.size()));
     std::iter_swap(std::rbegin(real_to_random_),
@@ -78,7 +79,9 @@ void Playlist::RemoveDuplicate() {
   RemoveIf(is_known);
 }
 
-std::deque<TrackInfo> Playlist::GetTracks() const { return playlist_; }
+Playlist::Container Playlist::GetTracks() const {
+  return playlist_;
+}
 
 void Playlist::SetTrackInfo(
     const std::unordered_map<TrackLocation, TrackInfo>& tracks) {
@@ -95,7 +98,7 @@ std::error_code Playlist::SeekTrack(int64_t pos, SeekWay offset_type,
   if (repeat_track_) {
     if (track) {
       *track = CurrentTrack();
-      return{};
+      return {};
     }
   }
 
@@ -132,9 +135,11 @@ std::error_code Playlist::SeekTrack(int64_t pos, SeekWay offset_type,
 
 TrackInfo Playlist::CurrentTrack() const {
   if (random_mode_) {
-    return playlist_.at(real_to_random_[current_track_]);
+    auto it = std::next(std::begin(playlist_), real_to_random_[current_track_]);
+    return *it;
   } else {
-    return playlist_.at(current_track_);
+    auto it = std::next(std::begin(playlist_), current_track_);
+    return *it;
   }
 }
 
