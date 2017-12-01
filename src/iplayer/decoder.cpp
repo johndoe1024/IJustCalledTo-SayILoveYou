@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "iplayer/log.h"
+#include "iplayer/utils/log.h"
 #include "iplayer/utils/scope_guard.h"
 
 namespace ip {

@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "iplayer/log.h"
+#include "iplayer/utils/log.h"
 #include "iplayer/track_location.h"
 #include "test/iplayer/test_ui_main.h"
 

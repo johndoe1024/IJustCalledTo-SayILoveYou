@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include "iplayer/fs_track_provider.h"
-#include "iplayer/log.h"
+#include "iplayer/utils/log.h"
 
 namespace ip {
 

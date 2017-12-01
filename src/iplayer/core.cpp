@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "iplayer/decoder.h"
-#include "iplayer/log.h"
+#include "iplayer/utils/log.h"
 #include "iplayer/player_control.h"
 #include "iplayer/playlist.h"
 #include "iplayer/track_location.h"

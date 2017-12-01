@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <iostream>
 
-#include "iplayer/log.h"
+#include "iplayer/utils/log.h"
 #include "iplayer/track_location.h"
 
 namespace ip {

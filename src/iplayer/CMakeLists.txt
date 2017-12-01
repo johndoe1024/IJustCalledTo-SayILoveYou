@@ -13,7 +13,6 @@ add_executable(iplayer
                i_track_io.h
                i_track_provider.h
                i_user_interface.h
-               log.h
                main.cpp
                player_control.h
                player_control.cpp
@@ -24,6 +23,7 @@ add_executable(iplayer
                track_info.cpp
                utils/exec_queue.h
                utils/exec_queue.cpp
+               utils/log.h
                utils/scope_guard.h
                )
 

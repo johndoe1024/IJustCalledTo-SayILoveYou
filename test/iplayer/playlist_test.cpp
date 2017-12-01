@@ -1,9 +1,9 @@
 #include "iplayer/playlist.h"
-#include "iplayer/log.h"
 
 #include <algorithm>
-
 #include <assert.h>
+
+#include "iplayer/utils/log.h"
 
 namespace ip {
 
@@ -262,7 +262,7 @@ int main() {
   if (!ip::CaseRepeatPlaylist()) {
     return 1;
   }
-  for (int i = 0; i < 100000; ++i) {
+  for (int i = 0; i < 10000; ++i) {
     if (!ip::CaseRandomPlay(i)) {
       return 1;
     }

@@ -12,13 +12,12 @@ add_library(iplayer_test_lib STATIC
 
             ${IPLAYER_SRC_DIR}/iplayer/core.h
             ${IPLAYER_SRC_DIR}/iplayer/core.cpp
+            ${IPLAYER_SRC_DIR}/iplayer/decoder.h
+            ${IPLAYER_SRC_DIR}/iplayer/decoder.cpp
             ${IPLAYER_SRC_DIR}/iplayer/i_player_control.h
             ${IPLAYER_SRC_DIR}/iplayer/i_track_io.h
             ${IPLAYER_SRC_DIR}/iplayer/i_track_provider.h
             ${IPLAYER_SRC_DIR}/iplayer/i_user_interface.h
-            ${IPLAYER_SRC_DIR}/iplayer/log.h
-            ${IPLAYER_SRC_DIR}/iplayer/decoder.h
-            ${IPLAYER_SRC_DIR}/iplayer/decoder.cpp
             ${IPLAYER_SRC_DIR}/iplayer/fs_track_provider.h
             ${IPLAYER_SRC_DIR}/iplayer/fs_track_provider.cpp
             ${IPLAYER_SRC_DIR}/iplayer/main.cpp
@@ -29,9 +28,10 @@ add_library(iplayer_test_lib STATIC
             ${IPLAYER_SRC_DIR}/iplayer/track_location.h
             ${IPLAYER_SRC_DIR}/iplayer/track_info.h
             ${IPLAYER_SRC_DIR}/iplayer/track_info.cpp
-            ${IPLAYER_SRC_DIR}/iplayer/utils/scope_guard.h
             ${IPLAYER_SRC_DIR}/iplayer/utils/exec_queue.h
             ${IPLAYER_SRC_DIR}/iplayer/utils/exec_queue.cpp
+            ${IPLAYER_SRC_DIR}/iplayer/utils/log.h
+            ${IPLAYER_SRC_DIR}/iplayer/utils/scope_guard.h
             )
 
 target_compile_features(iplayer_test_lib PUBLIC cxx_std_14)
