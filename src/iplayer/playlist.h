@@ -21,6 +21,7 @@ class Playlist {
   enum class SeekWay { kBegin = 0, kCurrent };
 
   Playlist();
+  Playlist(int seed);
 
   void AddTrack(const std::vector<TrackLocation>& tracks);
   void SetTrackInfo(const std::unordered_map<TrackLocation, TrackInfo>& tracks);

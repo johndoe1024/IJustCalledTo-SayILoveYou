@@ -24,6 +24,13 @@ Playlist::Playlist()
       random_mode_(false),
       prng_(dev_random_()) {}
 
+Playlist::Playlist(int seed)
+    : current_track_(0),
+      repeat_playlist_(false),
+      repeat_track_(false),
+      random_mode_(false),
+      prng_(seed) {}
+
 void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
   assert(random_mode_ ? (playlist_.size() == random_.size()) : true);
 

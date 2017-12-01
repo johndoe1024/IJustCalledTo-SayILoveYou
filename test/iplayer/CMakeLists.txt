@@ -36,7 +36,7 @@ add_library(iplayer_test_lib STATIC
 
 target_compile_features(iplayer_test_lib PUBLIC cxx_std_14)
 target_compile_definitions(iplayer_test_lib PUBLIC
-                           #IPLAYER_ENABLE_LOG
+                           IPLAYER_ENABLE_LOG
                            IPLAYER_VERSION="${IPLAYER_VERSION}")
 target_link_libraries(iplayer_test_lib INTERFACE pthread)
 
