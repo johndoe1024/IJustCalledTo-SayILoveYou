@@ -5,15 +5,15 @@ add_executable(iplayer
                cli_ui.cpp
                core.h
                core.cpp
+               decoder.h
+               decoder.cpp
+               fs_track_provider.h
+               fs_track_provider.cpp
                i_player_control.h
                i_track_io.h
                i_track_provider.h
                i_user_interface.h
                log.h
-               decoder.h
-               decoder.cpp
-               fs_track_provider.h
-               fs_track_provider.cpp
                main.cpp
                player_control.h
                player_control.cpp
@@ -33,6 +33,6 @@ endif()
 target_compile_definitions(iplayer PRIVATE
                            ${IPLAYER_ENABLE_LOG}
                            IPLAYER_VERSION="${IPLAYER_VERSION}")
-#target_compile_options(iplayer PRIVATE -Wall)
+target_compile_options(iplayer PRIVATE -Wall)
 target_compile_features(iplayer PRIVATE cxx_std_14)
 target_link_libraries(iplayer PRIVATE pthread)

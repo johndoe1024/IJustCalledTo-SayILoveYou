@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-// TODO: LOG/TRACE are not thread safe
+// BEWARE: LOG/TRACE are not thread safe
 #define LOG(fmt, ...)                                                         \
   do {                                                                        \
     fprintf(stderr, fmt " [%s:%d:%s()]\n", ##__VA_ARGS__, __FILE__, __LINE__, \

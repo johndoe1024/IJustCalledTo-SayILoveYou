@@ -20,7 +20,7 @@ void PrintHelp() {
             << "repeat_track on/off         current track will repeat" << std::endl
             << "repeat_playlist on/off      playlist will restart when finished"  << std::endl
             << "random_track on/off         play random tracks from playlist"  << std::endl
-            << "add_track [track_name]      add track (metadata is dynamically created)" << std::endl
+            << "add_track [track_name] / a  add track (metadata is dynamically created)" << std::endl
             << "show_track / s              display information about current track" << std::endl
             << "remove_track [track_name]   remove 'track_name" << std::endl
             << "remove_duplicates           remove duplicate track" << std::endl
@@ -84,7 +84,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       player_ctl_->SetRepeatPlaylistEnabled(parameters == "on");
     } else if (command == "random_track") {
       player_ctl_->SetRandomTrackEnabled(parameters == "on");
-    } else if (command == "add_track") {
+    } else if (command == "add_track" || command == "a") {
       TrackLocation track = parameters;
       player_ctl_->AddTrack({parameters});
       std::cout << "Added " << parameters << std::endl;
@@ -99,7 +99,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     } else if (command == "show_playlist" || command == "pl") {
       auto playlist = player_ctl_->ShowPlaylist();
       PrintPlaylistInfo(playlist);
-    } else if (command == "help") {
+    } else if (command == "help" || command == "h") {
       PrintHelp();
     } else {
       std::cout << "Error: unknown command '" << command << "'" << std::endl;
