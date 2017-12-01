@@ -46,7 +46,7 @@ void Playlist::AddTrack(const std::vector<TrackLocation>& tracks) {
     random_.push_back(static_cast<TrackId>(playlist_.size() + i - 1));
 
     std::uniform_int_distribution<TrackId> random_index(
-        0, static_cast<TrackId>(playlist_.size()));
+        0, static_cast<TrackId>(playlist_.size() - 1));
     std::iter_swap(std::rbegin(random_),
                    std::begin(random_) + random_index(prng_));
   }
@@ -225,6 +225,7 @@ void Playlist::Shuffle() {
 void Playlist::SetModeRandom(bool value) {
   random_mode_ = value;
   if (random_mode_) {
+    current_track_ = 0;
     Shuffle();
   } else {
     // keep current track with ordered mode
