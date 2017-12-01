@@ -1,4 +1,5 @@
 #include "iplayer/playlist.h"
+#include "iplayer/log.h"
 
 #include <algorithm>
 
@@ -32,7 +33,8 @@ bool CaseRemoveTrack() {
   auto locations = CreateTrackLocations(100000, 3);
   playlist.AddTrack(locations);
 
-  std::unordered_set<TrackLocation> to_rm{"foo_0", "foo_1000"};
+  std::unordered_set<TrackLocation> to_rm{
+      "x", "foo_0", "foo_1000", "foo_" + std::to_string(locations.size() - 1)};
   playlist.RemoveTrack(to_rm);
 
   // try to find the removed tracks
