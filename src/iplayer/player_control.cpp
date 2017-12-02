@@ -174,7 +174,7 @@ void PlayerControl::RemoveDuplicateTrack() {
 }
 
 std::vector<TrackInfo> PlayerControl::ShowPlaylist() const {
-  decltype (playlist_.GetTracks()) playlist;
+  decltype(playlist_.GetTracks()) playlist;
   {
     std::lock_guard<std::mutex> lock(mutex_);
     playlist = playlist_.GetTracks();

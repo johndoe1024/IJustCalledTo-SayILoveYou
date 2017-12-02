@@ -6,7 +6,7 @@
 #include <mutex>
 
 #include "iplayer/core.h"
-#include "iplayer/decoder.h"
+#include "iplayer/i_decoder.h"
 #include "iplayer/playlist.h"
 
 namespace ip {
@@ -43,7 +43,7 @@ class PlayerControl : public IPlayerControl {
   mutable std::mutex mutex_;
   Core* core_;
   Status status_;
-  std::unique_ptr<Decoder> decoder_;
+  std::unique_ptr<IDecoder> decoder_;
   Playlist playlist_;
 };
 

@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "iplayer/decoder.h"
+#include "iplayer/dummy_decoder.h"
 #include "iplayer/utils/log.h"
 #include "iplayer/player_control.h"
 #include "iplayer/playlist.h"

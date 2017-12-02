@@ -1,4 +1,4 @@
-#include "iplayer/decoder.h"
+#include "iplayer/dummy_decoder.h"
 
 #include <assert.h>
 
@@ -7,21 +7,21 @@
 
 namespace ip {
 
-Decoder::Decoder(std::unique_ptr<ITrackProvider> provider,
+DummyDecoder::DummyDecoder(std::unique_ptr<ITrackProvider> provider,
                  const TrackLocation& track, CompletionCb cb)
     : exit_decoder_thread_(false), played_time_(std::chrono::seconds(0)) {
-  decoder_future_ = std::async(std::launch::async, &Decoder::DecoderThread,
+  decoder_future_ = std::async(std::launch::async, &DummyDecoder::DecoderThread,
                                this, std::move(provider), track, cb);
 }
 
-Decoder::~Decoder() {
+DummyDecoder::~DummyDecoder() {
   exit_decoder_thread_ = true;
   Unpause();
 }
 
-void Decoder::Pause() { paused_ = true; }
+void DummyDecoder::Pause() { paused_ = true; }
 
-void Decoder::Unpause() {
+void DummyDecoder::Unpause() {
   {
     std::lock_guard<std::mutex> lock(pause_mutex_);
     paused_ = false;
@@ -29,9 +29,9 @@ void Decoder::Unpause() {
   }
 }
 
-std::chrono::seconds Decoder::GetPlayedTime() const { return played_time_; }
+std::chrono::seconds DummyDecoder::GetPlayedTime() const { return played_time_; }
 
-void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
+void DummyDecoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
                             TrackLocation location,
                             CompletionCb completion_cb) {
   LOG("[D] decoding %s", location.c_str());
