@@ -8,8 +8,10 @@
 namespace ip {
 
 DummyDecoder::DummyDecoder(std::unique_ptr<ITrackProvider> provider,
-                 const TrackLocation& track, CompletionCb cb)
-    : exit_decoder_thread_(false), played_time_(std::chrono::seconds(0)) {
+                           const TrackLocation& track, CompletionCb cb)
+    : paused_(false),
+      exit_decoder_thread_(false),
+      played_time_(std::chrono::seconds(0)) {
   decoder_future_ = std::async(std::launch::async, &DummyDecoder::DecoderThread,
                                this, std::move(provider), track, cb);
 }
@@ -29,11 +31,13 @@ void DummyDecoder::Unpause() {
   }
 }
 
-std::chrono::seconds DummyDecoder::GetPlayedTime() const { return played_time_; }
+std::chrono::seconds DummyDecoder::GetPlayedTime() const {
+  return played_time_;
+}
 
 void DummyDecoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
-                            TrackLocation location,
-                            CompletionCb completion_cb) {
+                                 TrackLocation location,
+                                 CompletionCb completion_cb) {
   LOG("[D] decoding %s", location.c_str());
   auto ec = std::make_error_code(std::errc::interrupted);
 

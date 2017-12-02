@@ -3,7 +3,9 @@
 #include <assert.h>
 #include <algorithm>
 
+#include "iplayer/dummy_decoder.h"
 #include "iplayer/fs_track_provider.h"
+#include "iplayer/mad_decoder.h"
 #include "iplayer/utils/log.h"
 
 namespace ip {

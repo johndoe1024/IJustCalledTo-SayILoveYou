@@ -38,3 +38,11 @@ target_compile_definitions(iplayer PRIVATE
 target_compile_options(iplayer PRIVATE -Wall)
 target_compile_features(iplayer PRIVATE cxx_std_14)
 target_link_libraries(iplayer PRIVATE pthread)
+
+
+# libmad
+if (OPTION_IPLAYER_DECODER_MAD)
+  target_sources(iplayer PRIVATE mad_decoder.h mad_decoder.cpp)
+  target_link_libraries(iplayer PRIVATE mad pulse-simple pulse)
+endif()
+

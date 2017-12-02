@@ -42,6 +42,16 @@ target_link_libraries(iplayer_test_lib INTERFACE pthread)
 
 link_libraries(iplayer_test_lib)
 
+# libmad
+if (OPTION_IPLAYER_DECODER_MAD)
+  target_sources(iplayer_test_lib PRIVATE
+                 ${IPLAYER_SRC_DIR}/iplayer/mad_decoder.h
+                 ${IPLAYER_SRC_DIR}/iplayer/mad_decoder.cpp)
+
+  target_link_libraries(iplayer_test_lib PRIVATE mad pulse-simple pulse)
+endif()
+
+
 # test playlist add/remove/remove dup...
 add_executable(playlist_test playlist_test.cpp)
 add_test(NAME playlist_test COMMAND playlist_test)
