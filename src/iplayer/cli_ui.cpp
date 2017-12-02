@@ -3,8 +3,8 @@
 #include <assert.h>
 #include <iostream>
 
-#include "iplayer/utils/log.h"
 #include "iplayer/track_location.h"
+#include "iplayer/utils/log.h"
 
 namespace ip {
 
@@ -14,6 +14,7 @@ void PrintHelp() {
   std::cout << "Commands:" << std::endl
             << "---------" << std::endl
             << "play / p                    play playlist's current track" << std::endl
+            << "pause                       pause current track" << std::endl
             << "prev / b                    previous track (unpause)" << std::endl
             << "next / n                    next track (unpause)" << std::endl
             << "stop                        stop and return at start of playlist" << std::endl
@@ -72,6 +73,8 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       auto track = player_ctl_->GetCurrentTrackInfo(nullptr);
       std::cout << "Playing " << track.Title() << " (" << track.Location()
                 << ")" << std::endl;
+    } else if (command == "pause") {
+      player_ctl_->Pause();
     } else if (command == "next" || command == "n") {
       player_ctl_->Next();
     } else if (command == "prev" || command == "b") {
