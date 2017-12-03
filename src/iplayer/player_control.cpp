@@ -134,6 +134,23 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
   auto provider = std::make_unique<FsTrackProvider>();
   decoder_ = std::make_unique<Decoder>(std::move(provider), track,
                                        std::move(on_completion));
+
+void PlayerControl::AddUri(const std::string& uri) {
+  // no need of mutex here currently
+  //std::lock_guard<std::mutex> lock(mutex_);
+
+  // resolve tracks async to keep responsive ui
+  auto list_track = [this, uri]() {
+    auto provider = std::make_unique<FsTrackProvider>();
+    std::vector<TrackLocation> locations;
+    auto ec = provider->List(uri, &locations);
+    if (ec) {
+      LOG("%s", ec.message().c_str());
+      return;
+    }
+    AddTrack(locations);
+  };
+  core_->QueueExecution(list_track);
 }
 
 void PlayerControl::AddTrack(const std::vector<TrackLocation>& locations) {

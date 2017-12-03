@@ -7,6 +7,8 @@ add_executable(iplayer
                core.cpp
                dummy_decoder.h
                dummy_decoder.cpp
+               dummy_track_provider.h
+               dummy_track_provider.cpp
                fs_track_provider.h
                fs_track_provider.cpp
                i_decoder.h
@@ -48,3 +50,20 @@ if (OPTION_IPLAYER_DECODER_MAD)
   target_link_libraries(iplayer PRIVATE mad pulse-simple pulse)
 endif()
 
+
+# gstreamer
+if (OPTION_IPLAYER_DECODER_GSTREAMER)
+  find_package(PkgConfig)
+  pkg_check_modules(GST REQUIRED gstreamer-1.0>=1.4)
+  pkg_check_modules(GLIB REQUIRED glib-2.0>=2.0)
+
+  target_sources(iplayer PRIVATE
+                 gstreamer_decoder.h
+                 gstreamer_decoder.cpp)
+
+  target_include_directories(iplayer PRIVATE
+                             ${GST_INCLUDE_DIRS}
+                             ${GLIB_INCLUDES_DIRS})
+
+  target_link_libraries(iplayer PRIVATE gstreamer-1.0 glib-2.0 gobject-2.0)
+endif()
