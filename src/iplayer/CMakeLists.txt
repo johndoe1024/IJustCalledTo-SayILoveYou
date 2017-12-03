@@ -24,6 +24,8 @@ add_executable(iplayer
                track_info.cpp
                utils/exec_queue.h
                utils/exec_queue.cpp
+               utils/file_mapping.h
+               utils/file_mapping.cpp
                utils/log.h
                utils/scope_guard.h
                )

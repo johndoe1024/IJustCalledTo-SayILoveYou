@@ -1,15 +1,24 @@
 #include "iplayer/mad_decoder.h"
 
 #include <assert.h>
+#include <mad.h>
 #include <pulse/error.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
+#include <pulse/simple.h>
 
+#include "iplayer/utils/file_mapping.h"
 #include "iplayer/utils/log.h"
 #include "iplayer/utils/scope_guard.h"
 
+//
 // inspired from:
 // https://lauri.xn--vsandi-pxa.com/2013/12/implementing-mp3-player.en.html
+//
+// Seems not very reliable (file is entirely mapped, error handling is weird...)
+//
+// See also:
+// https://github.com/bbc/audiowaveform/blob/master/src/Mp3AudioFileReader.cpp
+// http://read.pudn.com/downloads143/sourcecode/book/624943/libmad_05_0319/src/decoder.c__.htm?scrajs=wslfd1
+//
 
 // Some helper functions, to be cleaned up in the future
 int scale(mad_fixed_t sample) {
@@ -27,7 +36,7 @@ int scale(mad_fixed_t sample) {
 namespace ip {
 
 MadDecoder::MadDecoder(std::unique_ptr<ITrackProvider> provider,
-                       const TrackLocation &track, CompletionCb cb)
+                       const TrackLocation& track, CompletionCb cb)
     : paused_(false),
       exit_decoder_thread_(false),
       played_time_(std::chrono::seconds(0)),
@@ -53,111 +62,115 @@ void MadDecoder::Unpause() {
 
 std::chrono::seconds MadDecoder::GetPlayedTime() const { return played_time_; }
 
-int MadDecoder::Output(struct mad_header const *header, struct mad_pcm *pcm) {
+int MadDecoder::Output(struct mad_header const* header, struct mad_pcm* pcm) {
+  UNUSED(header);
   int error = 0;
-  register int nsamples = pcm->length;
+  int nsamples = pcm->length;
   mad_fixed_t const *left_ch = pcm->samples[0], *right_ch = pcm->samples[1];
   static char stream[1152 * 4];
   if (pcm->channels == 2) {
     while (nsamples--) {
       signed int sample;
       sample = scale(*left_ch++);
-      stream[(pcm->length - nsamples) * 4] = ((sample >> 0) & 0xff);
-      stream[(pcm->length - nsamples) * 4 + 1] = ((sample >> 8) & 0xff);
+      stream[(pcm->length - nsamples) * 4] =
+          static_cast<char>(((sample >> 0) & 0xff));
+      stream[(pcm->length - nsamples) * 4 + 1] =
+          static_cast<char>(((sample >> 8) & 0xff));
       sample = scale(*right_ch++);
-      stream[(pcm->length - nsamples) * 4 + 2] = ((sample >> 0) & 0xff);
-      stream[(pcm->length - nsamples) * 4 + 3] = ((sample >> 8) & 0xff);
+      stream[(pcm->length - nsamples) * 4 + 2] =
+          static_cast<char>(((sample >> 0) & 0xff));
+      stream[(pcm->length - nsamples) * 4 + 3] =
+          static_cast<char>(((sample >> 8) & 0xff));
     }
-    if (pa_simple_write(device_, stream, (size_t)1152 * 4, &error) < 0) {
-      fprintf(stderr, "pa_simple_write() failed: %s\n", pa_strerror(error));
+    if (pa_simple_write(device_, stream, static_cast<size_t>(1152 * 4),
+                        &error) < 0) {
+      LOG("pa_simple_write() failed: %s\n", pa_strerror(error));
       return error;
     }
   } else {
-    printf("Mono not supported!");
+    LOG("Mono not supported!");
   }
+  return 0;
 }
 
 void MadDecoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
                                TrackLocation location,
                                CompletionCb completion_cb) {
+  std::error_code ec;
+  try {
+    ec = Decode(std::move(provider), location);
+  } catch (const std::system_error& ex) {
+    ec = ex.code();
+  } catch (const std::exception& ex) {
+    LOG("caught exception: %s", ex.what());
+    ec = std::make_error_code(std::errc::bad_message);
+  }
+  if (completion_cb) {
+    completion_cb(ec);
+  }
+}
+
+std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
+                                   const TrackLocation& location) {
+  UNUSED(provider);  // TODO
   LOG("[D] decoding %s", location.c_str());
-  auto ec = std::make_error_code(std::errc::interrupted);
-  int error = 0;
+  int error = EINTR;
+  struct mad_stream mad_stream;
+  struct mad_frame mad_frame;
+  struct mad_synth mad_synth;
 
-  // TODO: better raii
-  FILE *fp = nullptr;
+  // set up PulseAudio 16-bit 44.1kHz stereo output
+  static const pa_sample_spec ss = {PA_SAMPLE_S16LE, 44100, 2};
 
-  // make sure completion handler will always be called and cleanup
+  // cleanup guard
   auto interrupt_guard = CreateScopeGuard([&]() {
     LOG("[D] end of decoding %s", location.c_str());
-    if (completion_cb) {
-      if (error) {
-        ec.assign(error, std::system_category());  // TODO: check if it's true
-      }
-      completion_cb(ec);
-    }
-    if (fp) {
-      fclose(fp);
-      fp = nullptr;
-    }
     if (device_) {
       pa_simple_free(device_);
       device_ = nullptr;
     }
     mad_synth_finish(&mad_synth_);
-    mad_frame_finish(&mad_frame_);
-    mad_stream_finish(&mad_stream_);
+    mad_frame_finish(&mad_frame);
+    mad_stream_finish(&mad_stream);
   });
 
-  // TODO: better raii
-  mad_stream_init(&mad_stream_);
-  mad_synth_init(&mad_synth_);
-  mad_frame_init(&mad_frame_);
+  mad_stream_init(&mad_stream);
+  mad_synth_init(&mad_synth);
+  mad_frame_init(&mad_frame);
 
-  // Set up PulseAudio 16-bit 44.1kHz stereo output
-  static const pa_sample_spec ss = {
-      .format = PA_SAMPLE_S16LE, .rate = 44100, .channels = 2};
   if (!(device_ = pa_simple_new(NULL, "MP3 player", PA_STREAM_PLAYBACK, NULL,
                                 "playback", &ss, NULL, NULL, &error))) {
-    printf("pa_simple_new() failed\n");
-    return;
-  }
-  fp = fopen(location.c_str(), "r");
-  int fd = fileno(fp);
-
-  // Fetch file size, etc
-  struct stat metadata;
-  if (fstat(fd, &metadata) < 0) {
-    LOG("Failed to stat %s\n", location.c_str());
-    return;
+    LOG("pa_simple_new() failed");
+    return {errno, std::generic_category()};
   }
 
-  // TODO: leak ?
-  // NOTE: this is a complete mapping of the file !
-  unsigned char *input_stream =
-      (unsigned char *)mmap(0, metadata.st_size, PROT_READ, MAP_SHARED, fd, 0);
-  mad_stream_buffer(&mad_stream_, input_stream, metadata.st_size);
-  while (1) {
+  FileMapping file_mapping(location);
+  mad_stream_buffer(&mad_stream, file_mapping, file_mapping.size());
+  while (true) {
     {
       std::unique_lock<std::mutex> lock(pause_mutex_);
       pause_cv_.wait(lock, [this]() { return paused_ == false; });
     }
     if (exit_decoder_thread_) {
-      return;
+      return std::make_error_code(std::errc::operation_canceled);
     }
-    if (mad_frame_decode(&mad_frame_, &mad_stream_)) {
-      if (MAD_RECOVERABLE(mad_stream_.error)) {
+    if (mad_frame_decode(&mad_frame, &mad_stream)) {
+      if (MAD_RECOVERABLE(mad_stream.error)) {
         continue;
-      } else if (mad_stream_.error == MAD_ERROR_BUFLEN) {
-        break;  // it is eof as file is completely mapped
+      } else if (mad_stream.error == MAD_ERROR_BUFLEN) {
+        break;  // it means eof as file is completely mapped
       } else {
-        return;
+        // ideally mad's error should be mapped to custom error_code
+        return std::make_error_code(std::errc::bad_message);
       }
     }
-    mad_synth_frame(&mad_synth_, &mad_frame_);
-    error = Output(&mad_frame_.header, &mad_synth_.pcm);
+    mad_synth_frame(&mad_synth, &mad_frame);
+    error = Output(&mad_frame.header, &mad_synth.pcm);
+    if (error) {
+      return std::make_error_code(std::errc::bad_message);
+    }
   }
-  ec.clear();  // clear error code on success for completion_handler
+  return {};
 }
 
 }  // namespace ip

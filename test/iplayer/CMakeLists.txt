@@ -30,6 +30,8 @@ add_library(iplayer_test_lib STATIC
             ${IPLAYER_SRC_DIR}/iplayer/track_info.cpp
             ${IPLAYER_SRC_DIR}/iplayer/utils/exec_queue.h
             ${IPLAYER_SRC_DIR}/iplayer/utils/exec_queue.cpp
+            ${IPLAYER_SRC_DIR}/iplayer/utils/file_mapping.h
+            ${IPLAYER_SRC_DIR}/iplayer/utils/file_mapping.cpp
             ${IPLAYER_SRC_DIR}/iplayer/utils/log.h
             ${IPLAYER_SRC_DIR}/iplayer/utils/scope_guard.h
             )

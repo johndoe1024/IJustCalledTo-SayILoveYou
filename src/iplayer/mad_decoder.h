@@ -7,11 +7,12 @@
 #include <future>
 #include <mutex>
 
-#include <pulse/simple.h>
-#include <mad.h>
-
 #include "iplayer/i_track_provider.h"
 #include "iplayer/track_location.h"
+
+struct pa_simple;
+struct mad_header;
+struct mad_pcm;
 
 namespace ip {
 
@@ -30,7 +31,10 @@ class MadDecoder : public IDecoder {
  private:
   void DecoderThread(std::unique_ptr<ITrackProvider> provider,
                      TrackLocation track, CompletionCb completion_cb);
-  int Output(struct mad_header const *header, struct mad_pcm *pcm);
+  std::error_code Decode(std::unique_ptr<ITrackProvider> provider,
+                         const TrackLocation& track);
+
+  int Output(struct mad_header const* header, struct mad_pcm* pcm);
 
   std::atomic<bool> paused_;
   std::mutex pause_mutex_;
@@ -39,11 +43,7 @@ class MadDecoder : public IDecoder {
   std::atomic<std::chrono::seconds> played_time_;
   std::future<void> decoder_future_;
 
-  // mad
   pa_simple* device_;
-  struct mad_stream mad_stream_;
-  struct mad_frame mad_frame_;
-  struct mad_synth mad_synth_;
 };
 
 }  // namespace ip
