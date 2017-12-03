@@ -151,7 +151,7 @@ void Playlist::SetTrackInfo(
 
 std::error_code Playlist::SeekTrack(int64_t pos, SeekWay offset_type,
                                     TrackInfo* track) {
-  if (repeat_track_) {
+  if (repeat_track_ || (pos == -1 && current_track_ == 0)) {
     if (track) {
       *track = CurrentTrack();
       return {};
