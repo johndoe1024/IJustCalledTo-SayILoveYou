@@ -35,7 +35,7 @@ void PlayerControl::Play() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::Pause() {
@@ -65,7 +65,7 @@ void PlayerControl::Next() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::Previous() {
@@ -76,7 +76,7 @@ void PlayerControl::Previous() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::RestartCurrentTrack() {
@@ -87,7 +87,7 @@ void PlayerControl::RestartCurrentTrack() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::SetRepeatPlaylistEnabled(bool value) {
@@ -120,9 +120,26 @@ void PlayerControl::StopAndSeekBegin() {
   status_ = Status::kStop;
 }
 
-void PlayerControl::PlayTrack(const TrackLocation& track) {
-  // this handler will be called from decoder's thread context just before
-  // returning, it mustn't call directly PlayerControl methods
+void PlayerControl::PlayTrack(const TrackInfo& info) {
+  // IDEA: refactor to do this in decoder's thread to avoid any ui freeze.
+  // As getting TrackInfo is async it might not be ready, got get it directly
+  auto codec = info.Codec();
+  if (codec.empty()) {
+    auto provider = core_->GetTrackProvider(info.Location());
+    if (!provider) {
+      // try to play next track
+      core_->QueueExecution(std::bind(&PlayerControl::Next, this));
+      return;
+    }
+    auto new_info = provider->GetTrackInfo(info.Location());
+    codec = new_info.Codec();
+  }
+
+  // this lambda will be called from decoder's thread context just before
+  // returning, it mustn't call directly PlayerControl methods because of
+  // decoder_'s destruction (could use a shared_ptr)
+  //
+  // Decoder thread's future will hold on destruction avoiding race condition
   auto on_completion = [this](const std::error_code& ec) {
     if (ec) {
       LOG("[D] completion callback error: %s (%d)", ec.message().c_str(),
@@ -131,20 +148,13 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
     }
     core_->QueueExecution(std::bind(&PlayerControl::Next, this));
   };
-  auto provider = core_->GetTrackProvider(track);
-  if (!provider) {
+
+  decoder_ = core_->CreateDecoder(codec, info, std::move(on_completion));
+  if (!decoder_) {
+    LOG("[D] no decoder found for %s", codec.c_str());
     return;
   }
   status_ = Status::kPlay;
-
-  // IDEA: should determine which decoder to use dynamically
-#if !defined(IPLAYER_DECODER_MAD) or defined(IPLAYER_TEST)
-  decoder_ = std::make_unique<DummyDecoder>(std::move(provider), track,
-                                            std::move(on_completion));
-#else
-  decoder_ = std::make_unique<MadDecoder>(std::move(provider), track,
-                                          std::move(on_completion));
-#endif  // !IPLAYER_DECODER_MAD || TEST
 }
 
 void PlayerControl::AddUri(const std::string& uri) {

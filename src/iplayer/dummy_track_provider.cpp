@@ -17,12 +17,8 @@ std::error_code DummyTrackProvider::List(
 }
 
 TrackInfo DummyTrackProvider::GetTrackInfo(const TrackLocation& location) {
-  std::vector<std::string> codecs{{"mp3", "aac", "m4a", "flac", "wav"}};
-
-  TrackInfo track_info{
-      location, "foobar_" + std::to_string(title_id), title_id,
-      std::chrono::seconds(5 + std::rand() % 20),
-      codecs[static_cast<size_t>(std::rand()) % codecs.size()]};
+  TrackInfo track_info{location, "foobar_" + std::to_string(title_id), title_id,
+                       std::chrono::seconds(5 + std::rand() % 20), "dummy"};
   ++title_id;
   return track_info;
 }

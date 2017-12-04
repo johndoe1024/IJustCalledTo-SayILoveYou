@@ -3,21 +3,16 @@
 #include "iplayer/i_decoder.h"
 
 #include <atomic>
-#include <functional>
 #include <future>
 #include <mutex>
 
-#include "iplayer/i_track_provider.h"
-#include "iplayer/track_location.h"
+#include "iplayer/track_info.h"
 
 namespace ip {
 
 class DummyDecoder : public IDecoder {
  public:
-  using CompletionCb = std::function<void(const std::error_code&)>;
-
-  DummyDecoder(std::unique_ptr<ITrackProvider> provider,
-               const TrackLocation& track, CompletionCb completion_cb);
+  DummyDecoder(const TrackInfo& track, IDecoder::CompletionCb completion_cb);
   virtual ~DummyDecoder();
 
   void Pause() override;
@@ -25,8 +20,7 @@ class DummyDecoder : public IDecoder {
   std::chrono::seconds GetPlayedTime() const override;
 
  private:
-  void DecoderThread(std::unique_ptr<ITrackProvider> provider,
-                     TrackLocation track, CompletionCb completion_cb);
+  void DecoderThread(TrackInfo track, CompletionCb completion_cb);
 
   std::mutex pause_mutex_;
   std::condition_variable pause_cv_;

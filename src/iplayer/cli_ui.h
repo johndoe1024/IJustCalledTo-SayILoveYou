@@ -2,8 +2,8 @@
 
 #include "iplayer/i_user_interface.h"
 
-#include <memory>
 #include <future>
+#include <memory>
 
 #include "iplayer/i_player_control.h"
 

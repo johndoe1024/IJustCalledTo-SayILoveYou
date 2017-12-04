@@ -5,6 +5,8 @@ add_executable(iplayer
                cli_ui.cpp
                core.h
                core.cpp
+               decoder_factory.h
+               decoder_factory.cpp
                dummy_decoder.h
                dummy_decoder.cpp
                dummy_track_provider.h

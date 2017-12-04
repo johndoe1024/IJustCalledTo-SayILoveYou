@@ -118,6 +118,7 @@ TrackInfo FsTrackProvider::GetTrackInfo(const TrackLocation& location) {
     mad_timer_add(&total_time, mad_header.duration);
   }
   info.SetDuration(std::chrono::seconds{total_time.seconds});
+  info.SetCodec("mp3");
   return info;
 }
 
@@ -125,6 +126,7 @@ TrackInfo FsTrackProvider::GetTrackInfo(const TrackLocation& location) {
 
 TrackInfo FsTrackProvider::GetTrackInfo(const TrackLocation& location) {
   TrackInfo info{location};
+  info.SetCodec("mp3");
   return info;
 }
 #endif  // IPLAYER_DECODER_MAD

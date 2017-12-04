@@ -15,7 +15,7 @@ namespace ip {
 
 class Playlist {
  public:
-  using Container = std::deque<TrackInfo>;  // deque < vector < list
+  using Container = std::deque<TrackInfo>;  // benchmark: deque < vector < list
   using TrackId = uint32_t;
   enum class SeekWay { kBegin = 0, kCurrent };
 

@@ -12,6 +12,8 @@ add_library(iplayer_test_lib STATIC
 
             ${IPLAYER_SRC_DIR}/iplayer/core.h
             ${IPLAYER_SRC_DIR}/iplayer/core.cpp
+            ${IPLAYER_SRC_DIR}/iplayer/decoder_factory.h
+            ${IPLAYER_SRC_DIR}/iplayer/decoder_factory.cpp
             ${IPLAYER_SRC_DIR}/iplayer/dummy_decoder.h
             ${IPLAYER_SRC_DIR}/iplayer/dummy_decoder.cpp
             ${IPLAYER_SRC_DIR}/iplayer/dummy_track_provider.h

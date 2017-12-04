@@ -7,7 +7,7 @@
 #include <future>
 #include <mutex>
 
-#include "iplayer/i_track_provider.h"
+#include "iplayer/track_info.h"
 #include "iplayer/track_location.h"
 
 struct pa_simple;
@@ -20,8 +20,7 @@ class MadDecoder : public IDecoder {
  public:
   using CompletionCb = std::function<void(const std::error_code&)>;
 
-  MadDecoder(std::unique_ptr<ITrackProvider> provider,
-             const TrackLocation& track, CompletionCb completion_cb);
+  MadDecoder(const TrackInfo& track, CompletionCb completion_cb);
   virtual ~MadDecoder();
 
   void Pause() override;
@@ -29,10 +28,8 @@ class MadDecoder : public IDecoder {
   std::chrono::seconds GetPlayedTime() const override;
 
  private:
-  void DecoderThread(std::unique_ptr<ITrackProvider> provider,
-                     TrackLocation track, CompletionCb completion_cb);
-  std::error_code Decode(std::unique_ptr<ITrackProvider> provider,
-                         const TrackLocation& track);
+  void DecoderThread(TrackInfo track_info, CompletionCb completion_cb);
+  std::error_code Decode(const TrackInfo& track);
 
   int Output(struct mad_header const* header, struct mad_pcm* pcm);
 

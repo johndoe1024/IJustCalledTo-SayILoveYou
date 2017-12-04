@@ -1,8 +1,8 @@
 #pragma once
 
+#include <memory>
 #include <system_error>
 #include <vector>
-#include <memory>
 
 #include "iplayer/i_track_io.h"
 #include "iplayer/track_info.h"

@@ -13,7 +13,7 @@ make
 
 ### IPlayer with mp3 support (libmad)
 ```bash
-apt install libmad0-dev
+apt install libmad0-dev libpulse-dev
 git clone https://github.com/johndoe1024/IJustCalledTo-SayILoveYou.git iplayer
 mkdir iplayer/build
 cd iplayer/build
@@ -28,10 +28,10 @@ cd iplayer/build
 ```
 
 ```
-# add a dummy file
+# add a dummy file (decoded with DummyDecoder)
 >>> add_track foobar
 
-# add all mp3 of a directory
+# add all mp3 of a directory (decoded with MadDecoder)
 >>> add_track file:///home/user/music
 
 ```

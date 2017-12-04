@@ -34,14 +34,13 @@ int scale(mad_fixed_t sample) {
 
 namespace ip {
 
-MadDecoder::MadDecoder(std::unique_ptr<ITrackProvider> provider,
-                       const TrackLocation& track, CompletionCb cb)
+MadDecoder::MadDecoder(const TrackInfo& track_info, CompletionCb cb)
     : paused_(false),
       exit_decoder_thread_(false),
       played_time_(std::chrono::seconds(0)),
       device_(nullptr) {
   decoder_future_ = std::async(std::launch::async, &MadDecoder::DecoderThread,
-                               this, std::move(provider), track, cb);
+                               this, track_info, cb);
 }
 
 MadDecoder::~MadDecoder() {
@@ -92,15 +91,14 @@ int MadDecoder::Output(struct mad_header const*, struct mad_pcm* pcm) {
   return 0;
 }
 
-void MadDecoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
-                               TrackLocation location,
-                               CompletionCb completion_cb) {
+void MadDecoder::DecoderThread(TrackInfo info, CompletionCb completion_cb) {
   std::error_code ec;
   try {
-    ec = Decode(std::move(provider), location);
+    ec = Decode(info.Location());
   } catch (const std::system_error& ex) {
     ec = ex.code();
   } catch (const std::exception& ex) {
+    UNUSED(ex);
     LOG("caught exception: %s", ex.what());
     ec = std::make_error_code(std::errc::bad_message);
   }
@@ -109,10 +107,9 @@ void MadDecoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
   }
 }
 
-std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
-                                   const TrackLocation& location) {
-  UNUSED(provider);  // IDEA: should use ITrackIO instead of direct file access
-  LOG("[D] decoding %s", location.c_str());
+std::error_code MadDecoder::Decode(const TrackInfo& info) {
+  // IDEA: should use ITrackIO instead of direct file access
+  LOG("[D] decoding %s", info.Location().c_str());
   int error = EINTR;
   struct mad_stream mad_stream;
   struct mad_frame mad_frame;
@@ -125,7 +122,7 @@ std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
 
   // cleanup guard
   auto cleanup_guard = CreateScopeGuard([&]() {
-    LOG("[D] end of decoding %s", location.c_str());
+    LOG("[D] end of decoding %s", info.Location().c_str());
     if (device_) {
       pa_simple_free(device_);
       device_ = nullptr;
@@ -148,11 +145,11 @@ std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
   // IDEA: TrackLocation should be more than a typedef on std::string,
   // until then...
   std::string separator("file://");
-  auto separator_pos = location.find(separator);
+  auto separator_pos = info.Location().find(separator);
   if (separator_pos == std::string::npos) {
-    return{};
+    return {};
   }
-  auto path = location.substr( + separator.size());
+  auto path = info.Location().substr(+separator.size());
 
   FileMapping file_mapping(path);  // MAD_BUFFER_GUARD can cause issue
   mad_stream_buffer(&mad_stream, file_mapping, file_mapping.size());

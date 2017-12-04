@@ -39,7 +39,7 @@ class PlayerControl : public IPlayerControl {
   void Unpause();
   void StopAndSeekBegin();
   void SelectTrack(int64_t pos, TrackLocation* track_location);
-  void PlayTrack(const TrackLocation& track_location);
+  void PlayTrack(const TrackInfo& track_info);
 
   mutable std::mutex mutex_;
   Core* core_;
