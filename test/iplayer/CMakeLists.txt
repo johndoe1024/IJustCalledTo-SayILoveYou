@@ -14,6 +14,8 @@ add_library(iplayer_test_lib STATIC
             ${IPLAYER_SRC_DIR}/iplayer/core.cpp
             ${IPLAYER_SRC_DIR}/iplayer/dummy_decoder.h
             ${IPLAYER_SRC_DIR}/iplayer/dummy_decoder.cpp
+            ${IPLAYER_SRC_DIR}/iplayer/dummy_track_provider.h
+            ${IPLAYER_SRC_DIR}/iplayer/dummy_track_provider.cpp
             ${IPLAYER_SRC_DIR}/iplayer/i_player_control.h
             ${IPLAYER_SRC_DIR}/iplayer/i_track_io.h
             ${IPLAYER_SRC_DIR}/iplayer/i_track_provider.h
@@ -28,6 +30,8 @@ add_library(iplayer_test_lib STATIC
             ${IPLAYER_SRC_DIR}/iplayer/track_location.h
             ${IPLAYER_SRC_DIR}/iplayer/track_info.h
             ${IPLAYER_SRC_DIR}/iplayer/track_info.cpp
+            ${IPLAYER_SRC_DIR}/iplayer/track_provider_resolver.h
+            ${IPLAYER_SRC_DIR}/iplayer/track_provider_resolver.cpp
             ${IPLAYER_SRC_DIR}/iplayer/utils/exec_queue.h
             ${IPLAYER_SRC_DIR}/iplayer/utils/exec_queue.cpp
             ${IPLAYER_SRC_DIR}/iplayer/utils/file_mapping.h
@@ -38,6 +42,7 @@ add_library(iplayer_test_lib STATIC
 
 target_compile_features(iplayer_test_lib PUBLIC cxx_std_14)
 target_compile_definitions(iplayer_test_lib PUBLIC
+                           IPLAYER_TEST
                            IPLAYER_ENABLE_LOG
                            IPLAYER_VERSION="${IPLAYER_VERSION}")
 target_link_libraries(iplayer_test_lib INTERFACE pthread)

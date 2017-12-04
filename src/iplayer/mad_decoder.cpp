@@ -10,12 +10,11 @@
 #include "iplayer/utils/scope_guard.h"
 
 //
-// inspired from:
+// Inspired from:
 // https://lauri.xn--vsandi-pxa.com/2013/12/implementing-mp3-player.en.html
 //
-// Seems not very reliable (file is entirely mapped, error handling is weird...)
-//
 // See also:
+// https://github.com/njh/madjack/blob/master/src/minimad.c
 // https://github.com/bbc/audiowaveform/blob/master/src/Mp3AudioFileReader.cpp
 // http://read.pudn.com/downloads143/sourcecode/book/624943/libmad_05_0319/src/decoder.c__.htm?scrajs=wslfd1
 //
@@ -62,9 +61,9 @@ void MadDecoder::Unpause() {
 
 std::chrono::seconds MadDecoder::GetPlayedTime() const { return played_time_; }
 
-int MadDecoder::Output(struct mad_header const* header, struct mad_pcm* pcm) {
-  UNUSED(header);
+int MadDecoder::Output(struct mad_header const*, struct mad_pcm* pcm) {
   int error = 0;
+
   int nsamples = pcm->length;
   mad_fixed_t const *left_ch = pcm->samples[0], *right_ch = pcm->samples[1];
   static char stream[1152 * 4];
@@ -112,18 +111,20 @@ void MadDecoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
 
 std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
                                    const TrackLocation& location) {
-  UNUSED(provider);  // TODO
+  UNUSED(provider);  // IDEA: should use ITrackIO instead of direct file access
   LOG("[D] decoding %s", location.c_str());
   int error = EINTR;
   struct mad_stream mad_stream;
   struct mad_frame mad_frame;
   struct mad_synth mad_synth;
 
+  mad_timer_t timer = mad_timer_zero;
+
   // set up PulseAudio 16-bit 44.1kHz stereo output
   static const pa_sample_spec ss = {PA_SAMPLE_S16LE, 44100, 2};
 
   // cleanup guard
-  auto interrupt_guard = CreateScopeGuard([&]() {
+  auto cleanup_guard = CreateScopeGuard([&]() {
     LOG("[D] end of decoding %s", location.c_str());
     if (device_) {
       pa_simple_free(device_);
@@ -135,8 +136,8 @@ std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
   });
 
   mad_stream_init(&mad_stream);
-  mad_synth_init(&mad_synth);
   mad_frame_init(&mad_frame);
+  mad_synth_init(&mad_synth);
 
   if (!(device_ = pa_simple_new(NULL, "MP3 player", PA_STREAM_PLAYBACK, NULL,
                                 "playback", &ss, NULL, NULL, &error))) {
@@ -144,7 +145,16 @@ std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
     return {errno, std::generic_category()};
   }
 
-  FileMapping file_mapping(location);
+  // IDEA: TrackLocation should be more than a typedef on std::string,
+  // until then...
+  std::string separator("file://");
+  auto separator_pos = location.find(separator);
+  if (separator_pos == std::string::npos) {
+    return{};
+  }
+  auto path = location.substr( + separator.size());
+
+  FileMapping file_mapping(path);  // MAD_BUFFER_GUARD can cause issue
   mad_stream_buffer(&mad_stream, file_mapping, file_mapping.size());
   while (true) {
     {
@@ -154,6 +164,7 @@ std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
     if (exit_decoder_thread_) {
       return std::make_error_code(std::errc::operation_canceled);
     }
+    //    mad_header_decode(&mad_frame.header, &mad_stream);
     if (mad_frame_decode(&mad_frame, &mad_stream)) {
       if (MAD_RECOVERABLE(mad_stream.error)) {
         continue;
@@ -165,6 +176,11 @@ std::error_code MadDecoder::Decode(std::unique_ptr<ITrackProvider> provider,
       }
     }
     mad_synth_frame(&mad_synth, &mad_frame);
+
+    // update ellapsed time
+    mad_timer_add(&timer, mad_frame.header.duration);
+    played_time_ = std::chrono::seconds(timer.seconds);
+
     error = Output(&mad_frame.header, &mad_synth.pcm);
     if (error) {
       return std::make_error_code(std::errc::bad_message);

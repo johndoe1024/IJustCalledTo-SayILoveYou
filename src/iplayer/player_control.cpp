@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "iplayer/dummy_decoder.h"
+#include "iplayer/dummy_track_provider.h"
 #include "iplayer/fs_track_provider.h"
 #include "iplayer/mad_decoder.h"
 #include "iplayer/utils/log.h"
@@ -130,18 +131,30 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
     }
     core_->QueueExecution(std::bind(&PlayerControl::Next, this));
   };
+  auto provider = core_->GetTrackProvider(track);
+  if (!provider) {
+    return;
+  }
   status_ = Status::kPlay;
-  auto provider = std::make_unique<FsTrackProvider>();
-  decoder_ = std::make_unique<Decoder>(std::move(provider), track,
-                                       std::move(on_completion));
+
+  // IDEA: should determine which decoder to use dynamically
+#if !defined(IPLAYER_DECODER_MAD) or defined(IPLAYER_TEST)
+  decoder_ = std::make_unique<DummyDecoder>(std::move(provider), track,
+                                            std::move(on_completion));
+#else
+  decoder_ = std::make_unique<MadDecoder>(std::move(provider), track,
+                                          std::move(on_completion));
+#endif  // !IPLAYER_DECODER_MAD || TEST
+}
 
 void PlayerControl::AddUri(const std::string& uri) {
-  // no need of mutex here currently
-  //std::lock_guard<std::mutex> lock(mutex_);
-
   // resolve tracks async to keep responsive ui
   auto list_track = [this, uri]() {
-    auto provider = std::make_unique<FsTrackProvider>();
+    auto provider = core_->GetTrackProvider(uri);
+    if (!provider) {
+      return;
+    }
+
     std::vector<TrackLocation> locations;
     auto ec = provider->List(uri, &locations);
     if (ec) {
@@ -150,7 +163,7 @@ void PlayerControl::AddUri(const std::string& uri) {
     }
     AddTrack(locations);
   };
-  core_->QueueExecution(list_track);
+  core_->QueueExecution(std::move(list_track));
 }
 
 void PlayerControl::AddTrack(const std::vector<TrackLocation>& locations) {
@@ -159,16 +172,19 @@ void PlayerControl::AddTrack(const std::vector<TrackLocation>& locations) {
   playlist_.AddTrack(locations);
 
   auto get_all_info = [this, locations]() {
-    auto provider = std::make_unique<FsTrackProvider>();
     std::unordered_map<TrackLocation, TrackInfo> infos;
     for (const auto& location : locations) {
+      auto provider = core_->GetTrackProvider(location);
+      if (!provider) {
+        LOG("cannot find track provider for %s", location.c_str());
+        continue;
+      }
+
       auto track = provider->GetTrackInfo(location);
       infos.insert({location, track});
     }
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      playlist_.SetTrackInfo(std::move(infos));
-    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    playlist_.SetTrackInfo(std::move(infos));
   };
   core_->QueueExecution(get_all_info);
 }

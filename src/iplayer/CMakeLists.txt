@@ -24,6 +24,8 @@ add_executable(iplayer
                track_location.h
                track_info.h
                track_info.cpp
+               track_provider_resolver.h
+               track_provider_resolver.cpp
                utils/exec_queue.h
                utils/exec_queue.cpp
                utils/file_mapping.h
@@ -47,6 +49,8 @@ target_link_libraries(iplayer PRIVATE pthread)
 # libmad
 if (OPTION_IPLAYER_DECODER_MAD)
   target_sources(iplayer PRIVATE mad_decoder.h mad_decoder.cpp)
+  target_compile_definitions(iplayer PRIVATE
+                             IPLAYER_DECODER_MAD)
   target_link_libraries(iplayer PRIVATE mad pulse-simple pulse)
 endif()
 

@@ -2,6 +2,7 @@
 
 #include <system_error>
 #include <vector>
+#include <memory>
 
 #include "iplayer/i_track_io.h"
 #include "iplayer/track_info.h"
@@ -17,5 +18,7 @@ class ITrackProvider {
   virtual std::unique_ptr<ITrackIO> OpenTrack(const TrackLocation& track,
                                               std::error_code& ec) = 0;
 };
+
+using ITrackProviderPtr = std::unique_ptr<ITrackProvider>;
 
 }  // namespace ip
