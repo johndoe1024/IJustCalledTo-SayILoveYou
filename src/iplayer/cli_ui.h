@@ -14,8 +14,8 @@ class Cli : public IUserInterface {
   Cli(std::unique_ptr<IPlayerControl> player_ctl);
   virtual ~Cli();
 
-  void Run() override;
-  void Exit() override;
+  void Run() override;  // start ui thread
+  void Exit() override;  // set ui thread to stop and block until done
 
  private:
   void Dispatch(const std::string& command, const std::string& parameters);

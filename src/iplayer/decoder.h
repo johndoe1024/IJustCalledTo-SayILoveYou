@@ -8,6 +8,8 @@
 #include "iplayer/i_track_provider.h"
 #include "iplayer/track_location.h"
 
+// this decoder update played time on a dedicated thread
+
 namespace ip {
 
 class Decoder {
