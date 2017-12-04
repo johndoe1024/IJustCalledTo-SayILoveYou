@@ -4,6 +4,7 @@
 
 #include "iplayer/utils/log.h"
 #include "iplayer/utils/scope_guard.h"
+#include "iplayer/track_info.h"
 
 namespace ip {
 

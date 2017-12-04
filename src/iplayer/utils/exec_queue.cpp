@@ -34,7 +34,8 @@ void ExecQueue::Run() {
       try {
         func();
       } catch (const std::exception& ex) {
-        LOG("caught exception: %s", ex.what());
+        UNUSED(ex);
+        LOG("exception caught: %s", ex.what());
       }
       queue.pop();
     }

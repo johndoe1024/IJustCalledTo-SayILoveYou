@@ -223,6 +223,9 @@ void Playlist::Shuffle() {
 }
 
 void Playlist::SetModeRandom(bool value) {
+  if (random_mode_ == value) {
+    return;
+  }
   random_mode_ = value;
   if (random_mode_) {
     current_track_ = 0;

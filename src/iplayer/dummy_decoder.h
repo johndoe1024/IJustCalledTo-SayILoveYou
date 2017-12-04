@@ -28,9 +28,9 @@ class DummyDecoder : public IDecoder {
   void DecoderThread(std::unique_ptr<ITrackProvider> provider,
                      TrackLocation track, CompletionCb completion_cb);
 
-  std::atomic<bool> paused_;
   std::mutex pause_mutex_;
   std::condition_variable pause_cv_;
+  std::atomic<bool> paused_;
   std::atomic<bool> exit_decoder_thread_;
   std::atomic<std::chrono::seconds> played_time_;
   std::future<void> decoder_future_;

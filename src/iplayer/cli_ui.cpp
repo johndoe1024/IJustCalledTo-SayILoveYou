@@ -113,7 +113,6 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
   }
 }
 
-
 void Cli::Run() {
   cli_future_ = std::async(std::launch::async, [&]() { UiThread(); });
 }
