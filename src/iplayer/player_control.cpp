@@ -37,11 +37,15 @@ void PlayerControl::Play() {
 
 void PlayerControl::Pause() {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (status_ != Status::kPlay) {
+  if (!decoder_) {
     return;
   }
-  if (decoder_) {
+  if (status_ == Status::kPlay) {
     decoder_->Pause();
+    status_ = Status::kPause;
+  } else if (status_ == Status::kPause) {
+    decoder_->Unpause();
+    status_ = Status::kPlay;
   }
 }
 
@@ -100,7 +104,7 @@ void PlayerControl::SetRandomTrackEnabled(bool value) {
 
 void PlayerControl::Unpause() {
   // private method so no synchronization
-  if (status_ != Status::kPause) {
+  if (status_ != Status::kPause || !decoder_) {
     return;
   }
   decoder_->Unpause();
@@ -174,7 +178,7 @@ void PlayerControl::RemoveDuplicateTrack() {
 }
 
 std::vector<TrackInfo> PlayerControl::ShowPlaylist() const {
-  decltype (playlist_.GetTracks()) playlist;
+  decltype(playlist_.GetTracks()) playlist;
   {
     std::lock_guard<std::mutex> lock(mutex_);
     playlist = playlist_.GetTracks();

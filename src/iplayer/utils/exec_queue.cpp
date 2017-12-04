@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include "iplayer/utils/log.h"
+
 namespace ip {
 
 // enforce it's always the same thread which unqueue and execute callbacks
@@ -10,7 +12,7 @@ ExecQueue::ExecQueue(std::thread::id exec_thread_id)
 
 void ExecQueue::Push(Func fn) {
   std::lock_guard<std::mutex> lock(mutex_);
-  assert(exit_ == false);
+  //assert(exit_ == false);  // exit_ = true might happend
   queue_.push(fn);
   cv_.notify_one();
 }
@@ -29,7 +31,12 @@ void ExecQueue::Run() {
     // empty the queue
     while (!queue.empty()) {
       auto func = queue.front();
-      func();
+      try {
+        func();
+      } catch (const std::exception& ex) {
+        UNUSED(ex);
+        LOG("exception caught: %s", ex.what());
+      }
       queue.pop();
     }
   }

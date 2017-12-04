@@ -29,9 +29,9 @@ class Decoder {
 
   std::mutex pause_mutex_;
   std::condition_variable pause_cv_;
+  std::atomic<bool> paused_;
   std::atomic<bool> exit_decoder_thread_;
   std::atomic<std::chrono::seconds> played_time_;
-  std::atomic<bool> paused_;
   std::future<void> decoder_future_;
 };
 

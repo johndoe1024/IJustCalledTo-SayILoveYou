@@ -15,7 +15,7 @@ TrackInfo FsTrackProvider::GetTrackInfo(const TrackLocation& location) {
 
   TrackInfo track_info{
       location, "foobar_" + std::to_string(title_id), title_id,
-      std::chrono::seconds(5 + std::rand() % 20),
+      std::chrono::seconds(7),
       codecs[static_cast<size_t>(std::rand()) % codecs.size()]};
   ++title_id;
   return track_info;

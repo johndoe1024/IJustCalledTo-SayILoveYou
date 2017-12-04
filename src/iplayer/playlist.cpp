@@ -151,7 +151,7 @@ void Playlist::SetTrackInfo(
 
 std::error_code Playlist::SeekTrack(int64_t pos, SeekWay offset_type,
                                     TrackInfo* track) {
-  if (repeat_track_) {
+  if (repeat_track_ || (pos == -1 && current_track_ == 0)) {
     if (track) {
       *track = CurrentTrack();
       return {};
@@ -223,6 +223,9 @@ void Playlist::Shuffle() {
 }
 
 void Playlist::SetModeRandom(bool value) {
+  if (random_mode_ == value) {
+    return;
+  }
   random_mode_ = value;
   if (random_mode_) {
     current_track_ = 0;
