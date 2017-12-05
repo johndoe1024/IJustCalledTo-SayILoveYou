@@ -11,6 +11,10 @@
 
 #include "iplayer/track_info.h"
 
+// Control playlist: track play order, random/repeat modes...
+// For the exercise I tried to optimize playlist processing and done some
+// benchmark to verify, container is still configurable.
+
 namespace ip {
 
 class Playlist {

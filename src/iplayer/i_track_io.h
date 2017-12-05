@@ -4,6 +4,8 @@
 
 #include "iplayer/track_location.h"
 
+// Abstraction to read track from any source (currently unused)
+
 namespace ip {
 
 class ITrackIO {

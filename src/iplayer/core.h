@@ -11,10 +11,10 @@ class Core {
   using AsyncFunc = ExecQueue::Func;
 
   Core();
-  void Start();
-  void Stop();
+  void Start();  // instanciate everything and start execution queue
+  void Stop();  // stop the exec queue
 
-  void QueueExecution(AsyncFunc func);
+  void QueueExecution(AsyncFunc func);  // post 'func' to be executed later
   ITrackProviderPtr GetTrackProvider(const TrackLocation& location) const;
 
   template <typename... Args>

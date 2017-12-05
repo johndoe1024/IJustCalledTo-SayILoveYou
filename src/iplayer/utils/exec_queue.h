@@ -9,6 +9,9 @@
 
 namespace ip {
 
+// This class is an execution queue that I would replace with asio's io_service
+// for async processing.
+
 class ExecQueue {
  public:
   using Func = std::function<void()>;

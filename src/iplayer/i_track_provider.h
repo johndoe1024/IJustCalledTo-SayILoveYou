@@ -7,6 +7,8 @@
 #include "iplayer/i_track_io.h"
 #include "iplayer/track_info.h"
 
+// Abstraction for specific services (Deezer, Spotify, ...)
+
 namespace ip {
 
 class ITrackProvider {

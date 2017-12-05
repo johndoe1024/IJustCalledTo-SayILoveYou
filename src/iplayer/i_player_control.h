@@ -5,6 +5,9 @@
 #include "iplayer/track_info.h"
 #include "iplayer/track_location.h"
 
+// Provide control over player like a remote would do. Thread-safe and non
+// blocking interface to avoid any ui freeze
+
 namespace ip {
 
 class IPlayerControl {
