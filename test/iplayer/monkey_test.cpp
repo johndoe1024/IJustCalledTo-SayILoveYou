@@ -46,7 +46,7 @@ void test_ui_main(IPlayerControl* player) {
         threads.push_back(std::thread(std::move(pause)));
         auto restart_current = [&]() { player->RestartCurrentTrack(); };
         threads.push_back(std::thread(std::move(restart_current)));
-        auto show_playlist = [&]() { player->ShowPlaylist(); };
+        auto show_playlist = [&]() { player->ShowPlaylist(nullptr); };
         threads.push_back(std::thread(std::move(show_playlist)));
         auto next = [&]() { player->Next(); };
         threads.push_back(std::thread(std::move(next)));

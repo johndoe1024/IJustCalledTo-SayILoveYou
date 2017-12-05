@@ -27,7 +27,7 @@ class Playlist {
   void RemoveTrack(const std::unordered_set<TrackLocation>& tracks);
   void RemoveDuplicate();
 
-  Container GetTracks() const;
+  Container GetTracks(TrackId* current_index = nullptr) const;
   std::error_code SeekTrack(int64_t pos, SeekWay offset_type, TrackInfo* track);
   TrackInfo CurrentTrack() const;
   size_t Remaining() const;

@@ -48,8 +48,15 @@ void PrintTrackInfo(const TrackInfo& track, std::chrono::seconds* elapsed) {
             << "Codec: " << track.Codec() << std::endl;
 }
 
-void PrintPlaylistInfo(const std::vector<TrackInfo>& playlist) {
-  for (const auto& track : playlist) {
+void PrintPlaylistInfo(const std::vector<TrackInfo>& playlist,
+                       size_t current_index) {
+  for (size_t i = 0; i < playlist.size(); ++i) {
+    const auto& track = playlist[i];
+    if (current_index == i) {
+      std::cout << " * ";
+    } else {
+      std::cout << "   ";
+    }
     std::cout << track.Location() << " - ["
               << std::to_string(track.TrackNumber()) << "] - "
               << std::to_string(track.Duration().count()) << "s - "
@@ -100,8 +107,9 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
     } else if (command == "remove_duplicates") {
       player_ctl_->RemoveDuplicateTrack();
     } else if (command == "show_playlist" || command == "pl") {
-      auto playlist = player_ctl_->ShowPlaylist();
-      PrintPlaylistInfo(playlist);
+      size_t current_index = 0;
+      auto playlist = player_ctl_->ShowPlaylist(&current_index);
+      PrintPlaylistInfo(playlist, current_index);
     } else if (command == "help" || command == "h") {
       PrintHelp();
     } else {

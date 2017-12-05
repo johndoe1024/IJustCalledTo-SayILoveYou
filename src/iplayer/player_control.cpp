@@ -216,11 +216,13 @@ void PlayerControl::RemoveDuplicateTrack() {
   playlist_.RemoveDuplicate();
 }
 
-std::vector<TrackInfo> PlayerControl::ShowPlaylist() const {
+std::vector<TrackInfo> PlayerControl::ShowPlaylist(size_t* current_id) const {
   decltype(playlist_.GetTracks()) playlist;
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    playlist = playlist_.GetTracks();
+    Playlist::TrackId track_id;
+    playlist = playlist_.GetTracks(&track_id);
+    *current_id = track_id;
   }
   std::vector<TrackInfo> tracks;
   std::transform(std::make_move_iterator(std::begin(playlist)),

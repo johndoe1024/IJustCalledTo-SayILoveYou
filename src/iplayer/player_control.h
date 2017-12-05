@@ -33,7 +33,8 @@ class PlayerControl : public IPlayerControl {
   TrackInfo GetCurrentTrackInfo(std::chrono::seconds* elapsed) const override;
   void RemoveTrack(const TrackLocation& track_location) override;
   void RemoveDuplicateTrack() override;
-  std::vector<TrackInfo> ShowPlaylist() const override;
+  std::vector<TrackInfo> ShowPlaylist(
+      size_t* current_track_index) const override;
 
  private:
   void Unpause();

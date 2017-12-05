@@ -28,7 +28,8 @@ class IPlayerControl {
       std::chrono::seconds* elapsed) const = 0;
   virtual void RemoveTrack(const TrackLocation& track_location) = 0;
   virtual void RemoveDuplicateTrack() = 0;
-  virtual std::vector<TrackInfo> ShowPlaylist() const = 0;
+  virtual std::vector<TrackInfo> ShowPlaylist(
+      size_t* current_track_index) const = 0;
 };
 
 }  // namespace ip
