@@ -128,7 +128,10 @@ void Playlist::RemoveDuplicate() {
   RemoveIf(is_known);
 }
 
-Playlist::Container Playlist::GetTracks() const {
+Playlist::Container Playlist::GetTracks(TrackId* current_index) const {
+  if (current_index) {
+    *current_index = current_track_;
+  }
   if (!random_mode_) {
     return playlist_;
   }

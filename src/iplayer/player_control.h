@@ -6,7 +6,7 @@
 #include <mutex>
 
 #include "iplayer/core.h"
-#include "iplayer/decoder.h"
+#include "iplayer/i_decoder.h"
 #include "iplayer/playlist.h"
 
 namespace ip {
@@ -28,22 +28,24 @@ class PlayerControl : public IPlayerControl {
   void SetRepeatPlaylistEnabled(bool enable) override;
   void SetRandomTrackEnabled(bool value) override;
 
+  void AddUri(const std::string& uri) override;
   void AddTrack(const std::vector<TrackLocation>& track_location) override;
   TrackInfo GetCurrentTrackInfo(std::chrono::seconds* elapsed) const override;
   void RemoveTrack(const TrackLocation& track_location) override;
   void RemoveDuplicateTrack() override;
-  std::vector<TrackInfo> ShowPlaylist() const override;
+  std::vector<TrackInfo> ShowPlaylist(
+      size_t* current_track_index) const override;
 
  private:
   void Unpause();
   void StopAndSeekBegin();
   void SelectTrack(int64_t pos, TrackLocation* track_location);
-  void PlayTrack(const TrackLocation& track_location);
+  void PlayTrack(const TrackInfo& track_info);
 
   mutable std::mutex mutex_;
   Core* core_;
   Status status_;
-  std::unique_ptr<Decoder> decoder_;
+  std::unique_ptr<IDecoder> decoder_;
   Playlist playlist_;
 };
 

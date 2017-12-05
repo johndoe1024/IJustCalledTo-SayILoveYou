@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <algorithm>
 
-#include "iplayer/fs_track_provider.h"
 #include "iplayer/utils/log.h"
 
 namespace ip {
@@ -32,7 +31,7 @@ void PlayerControl::Play() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::Pause() {
@@ -62,7 +61,7 @@ void PlayerControl::Next() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::Previous() {
@@ -73,7 +72,7 @@ void PlayerControl::Previous() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::RestartCurrentTrack() {
@@ -84,7 +83,7 @@ void PlayerControl::RestartCurrentTrack() {
     StopAndSeekBegin();
     return;
   }
-  PlayTrack(track.Location());
+  PlayTrack(track);
 }
 
 void PlayerControl::SetRepeatPlaylistEnabled(bool value) {
@@ -117,9 +116,26 @@ void PlayerControl::StopAndSeekBegin() {
   status_ = Status::kStop;
 }
 
-void PlayerControl::PlayTrack(const TrackLocation& track) {
-  // this handler will be called from decoder's thread context just before
-  // returning, it mustn't call directly PlayerControl methods
+void PlayerControl::PlayTrack(const TrackInfo& info) {
+  // IDEA: refactor to do this in decoder's thread to avoid any ui freeze.
+  // As getting TrackInfo is async it might not be ready, got get it directly
+  auto codec = info.Codec();
+  if (codec.empty()) {
+    auto provider = core_->GetTrackProvider(info.Location());
+    if (!provider) {
+      // try to play next track
+      core_->QueueExecution(std::bind(&PlayerControl::Next, this));
+      return;
+    }
+    auto new_info = provider->GetTrackInfo(info.Location());
+    codec = new_info.Codec();
+  }
+
+  // this lambda will be called from decoder's thread context just before
+  // returning, it mustn't call directly PlayerControl methods because of
+  // decoder_'s destruction (could use a shared_ptr)
+  //
+  // Decoder thread's future will hold on destruction avoiding race condition
   auto on_completion = [this](const std::error_code& ec) {
     if (ec) {
       LOG("[D] completion callback error: %s (%d)", ec.message().c_str(),
@@ -128,28 +144,51 @@ void PlayerControl::PlayTrack(const TrackLocation& track) {
     }
     core_->QueueExecution(std::bind(&PlayerControl::Next, this));
   };
+
+  decoder_ = core_->CreateDecoder(codec, info, std::move(on_completion));
+  if (!decoder_) {
+    LOG("[D] no decoder found for %s", codec.c_str());
+    return;
+  }
   status_ = Status::kPlay;
-  auto provider = std::make_unique<FsTrackProvider>();
-  decoder_ = std::make_unique<Decoder>(std::move(provider), track,
-                                       std::move(on_completion));
+}
+
+void PlayerControl::AddUri(const std::string& uri) {
+  auto list_track = [this, uri]() {
+    auto provider = core_->GetTrackProvider(uri);
+    if (!provider) {
+      return;
+    }
+
+    std::vector<TrackLocation> locations;
+    auto ec = provider->List(uri, &locations);
+    if (ec) {
+      LOG("%s", ec.message().c_str());
+      return;
+    }
+    AddTrack(locations);
+  };
+  core_->QueueExecution(std::move(list_track));
 }
 
 void PlayerControl::AddTrack(const std::vector<TrackLocation>& locations) {
   std::lock_guard<std::mutex> lock(mutex_);
-  // add track without its metadata and get those aync to keep responsive ui
   playlist_.AddTrack(locations);
 
   auto get_all_info = [this, locations]() {
-    auto provider = std::make_unique<FsTrackProvider>();
     std::unordered_map<TrackLocation, TrackInfo> infos;
     for (const auto& location : locations) {
+      auto provider = core_->GetTrackProvider(location);
+      if (!provider) {
+        LOG("cannot find track provider for %s", location.c_str());
+        continue;
+      }
+
       auto track = provider->GetTrackInfo(location);
       infos.insert({location, track});
     }
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      playlist_.SetTrackInfo(std::move(infos));
-    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    playlist_.SetTrackInfo(std::move(infos));
   };
   core_->QueueExecution(get_all_info);
 }
@@ -177,11 +216,13 @@ void PlayerControl::RemoveDuplicateTrack() {
   playlist_.RemoveDuplicate();
 }
 
-std::vector<TrackInfo> PlayerControl::ShowPlaylist() const {
+std::vector<TrackInfo> PlayerControl::ShowPlaylist(size_t* current_id) const {
   decltype(playlist_.GetTracks()) playlist;
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    playlist = playlist_.GetTracks();
+    Playlist::TrackId track_id;
+    playlist = playlist_.GetTracks(&track_id);
+    *current_id = track_id;
   }
   std::vector<TrackInfo> tracks;
   std::transform(std::make_move_iterator(std::begin(playlist)),

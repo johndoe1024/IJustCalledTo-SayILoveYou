@@ -6,13 +6,12 @@
 
 namespace ip {
 
-// enforce it's always the same thread which unqueue and execute callbacks
 ExecQueue::ExecQueue(std::thread::id exec_thread_id)
     : exit_(false), exec_thread_id_(exec_thread_id) {}
 
 void ExecQueue::Push(Func fn) {
   std::lock_guard<std::mutex> lock(mutex_);
-  //assert(exit_ == false);  // exit_ = true might happend
+  //assert(exit_ == false);  // exit_ might be true
   queue_.push(fn);
   cv_.notify_one();
 }

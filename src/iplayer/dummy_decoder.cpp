@@ -1,30 +1,29 @@
-#include "iplayer/decoder.h"
+#include "iplayer/dummy_decoder.h"
 
 #include <assert.h>
 
+#include "iplayer/track_info.h"
 #include "iplayer/utils/log.h"
 #include "iplayer/utils/scope_guard.h"
-#include "iplayer/track_info.h"
 
 namespace ip {
 
-Decoder::Decoder(std::unique_ptr<ITrackProvider> provider,
-                 const TrackLocation& track, CompletionCb cb)
+DummyDecoder::DummyDecoder(const TrackInfo& track, CompletionCb cb)
     : paused_(false),
       exit_decoder_thread_(false),
       played_time_(std::chrono::seconds(0)) {
-  decoder_future_ = std::async(std::launch::async, &Decoder::DecoderThread,
-                               this, std::move(provider), track, cb);
+  decoder_future_ = std::async(std::launch::async, &DummyDecoder::DecoderThread,
+                               this, track, cb);
 }
 
-Decoder::~Decoder() {
+DummyDecoder::~DummyDecoder() {
   exit_decoder_thread_ = true;
   Unpause();
 }
 
-void Decoder::Pause() { paused_ = true; }
+void DummyDecoder::Pause() { paused_ = true; }
 
-void Decoder::Unpause() {
+void DummyDecoder::Unpause() {
   {
     std::lock_guard<std::mutex> lock(pause_mutex_);
     paused_ = false;
@@ -32,12 +31,12 @@ void Decoder::Unpause() {
   }
 }
 
-std::chrono::seconds Decoder::GetPlayedTime() const { return played_time_; }
+std::chrono::seconds DummyDecoder::GetPlayedTime() const {
+  return played_time_;
+}
 
-void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
-                            TrackLocation location,
-                            CompletionCb completion_cb) {
-  LOG("[D] decoding %s", location.c_str());
+void DummyDecoder::DecoderThread(TrackInfo info, CompletionCb completion_cb) {
+  LOG("[D] decoding %s", info.Location().c_str());
   auto ec = std::make_error_code(std::errc::interrupted);
 
   // make sure completion handler will always be called
@@ -50,8 +49,7 @@ void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
   // simulate processing
   size_t loop_count = 0;
   std::chrono::milliseconds elapsed(0);
-  auto track_info = provider->GetTrackInfo(location);
-  auto duration = track_info.Duration();
+  auto duration = info.Duration();
   while (elapsed < duration) {
     if (exit_decoder_thread_) {
       LOG("[D] exiting");
@@ -74,8 +72,8 @@ void Decoder::DecoderThread(std::unique_ptr<ITrackProvider> provider,
 
     if (loop_count++ % 100 == 0) {
       using namespace std::chrono;
-      LOG("[D] chunk of %s (%02lu:%02lu / %02lu:%02lu)", location.c_str(),
-          duration_cast<minutes>(elapsed).count(),
+      LOG("[D] chunk of %s (%02lu:%02lu / %02lu:%02lu)",
+          info.Location().c_str(), duration_cast<minutes>(elapsed).count(),
           duration_cast<seconds>(elapsed).count() % 60,
           duration_cast<minutes>(duration).count(),
           duration_cast<seconds>(duration).count() % 60);
