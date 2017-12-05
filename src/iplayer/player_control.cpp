@@ -222,7 +222,9 @@ std::vector<TrackInfo> PlayerControl::ShowPlaylist(size_t* current_id) const {
     std::lock_guard<std::mutex> lock(mutex_);
     Playlist::TrackId track_id;
     playlist = playlist_.GetTracks(&track_id);
-    *current_id = track_id;
+    if (current_id) {
+      *current_id = track_id;
+    }
   }
   std::vector<TrackInfo> tracks;
   std::transform(std::make_move_iterator(std::begin(playlist)),
