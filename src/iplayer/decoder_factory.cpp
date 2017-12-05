@@ -1,14 +1,12 @@
 #include "iplayer/decoder_factory.h"
 
-#include <assert.h>
-#include <algorithm>
-
 namespace ip {
 
 IDecoderPtr DecoderFactory::Create(const std::string& codec,
 
                                    const TrackInfo& track,
                                    CompletionCb completion_cb) const {
+  std::lock_guard<std::mutex> lock(mutex_);
   auto it = decoders_.find(codec);
   if (it == std::cend(decoders_)) {
     return nullptr;

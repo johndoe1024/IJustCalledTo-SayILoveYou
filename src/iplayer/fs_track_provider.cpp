@@ -58,7 +58,6 @@ std::error_code FsTrackProvider::ListDir(
 
 std::error_code FsTrackProvider::List(
     const std::string& uri, std::vector<TrackLocation>* locations) const {
-  // strip scheme
   std::string scheme{"file://"};
   auto scheme_pos = uri.find(scheme);
   if (scheme_pos == std::string::npos) {
@@ -95,9 +94,9 @@ TrackInfo FsTrackProvider::GetTrackInfo(const TrackLocation& location) {
   std::string separator("file://");
   auto separator_pos = location.find(separator);
   if (separator_pos == std::string::npos) {
-    return{};
+    return {};
   }
-  auto path = location.substr( + separator.size());
+  auto path = location.substr(separator.size());
 
   FileMapping mapping(path);
   mad_timer_t total_time = mad_timer_zero;

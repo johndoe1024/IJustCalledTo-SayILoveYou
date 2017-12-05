@@ -142,14 +142,14 @@ std::error_code MadDecoder::Decode(const TrackInfo& info) {
     return {errno, std::generic_category()};
   }
 
-  // IDEA: TrackLocation should be more than a typedef on std::string,
-  // until then...
+  // IDEA: TrackLocation should be more than a typedef on std::string and
+  // provide access to uri elements, until then...
   std::string separator("file://");
   auto separator_pos = info.Location().find(separator);
   if (separator_pos == std::string::npos) {
     return {};
   }
-  auto path = info.Location().substr(+separator.size());
+  auto path = info.Location().substr(separator.size());
 
   FileMapping file_mapping(path);  // MAD_BUFFER_GUARD can cause issue
   mad_stream_buffer(&mad_stream, file_mapping, file_mapping.size());
@@ -161,7 +161,6 @@ std::error_code MadDecoder::Decode(const TrackInfo& info) {
     if (exit_decoder_thread_) {
       return std::make_error_code(std::errc::operation_canceled);
     }
-    //    mad_header_decode(&mad_frame.header, &mad_stream);
     if (mad_frame_decode(&mad_frame, &mad_stream)) {
       if (MAD_RECOVERABLE(mad_stream.error)) {
         continue;

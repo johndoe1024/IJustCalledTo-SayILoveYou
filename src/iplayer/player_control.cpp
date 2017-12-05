@@ -3,10 +3,6 @@
 #include <assert.h>
 #include <algorithm>
 
-#include "iplayer/dummy_decoder.h"
-#include "iplayer/dummy_track_provider.h"
-#include "iplayer/fs_track_provider.h"
-#include "iplayer/mad_decoder.h"
 #include "iplayer/utils/log.h"
 
 namespace ip {
@@ -158,7 +154,6 @@ void PlayerControl::PlayTrack(const TrackInfo& info) {
 }
 
 void PlayerControl::AddUri(const std::string& uri) {
-  // resolve tracks async to keep responsive ui
   auto list_track = [this, uri]() {
     auto provider = core_->GetTrackProvider(uri);
     if (!provider) {
@@ -178,7 +173,6 @@ void PlayerControl::AddUri(const std::string& uri) {
 
 void PlayerControl::AddTrack(const std::vector<TrackLocation>& locations) {
   std::lock_guard<std::mutex> lock(mutex_);
-  // add track without its metadata and get those async to keep responsive ui
   playlist_.AddTrack(locations);
 
   auto get_all_info = [this, locations]() {
