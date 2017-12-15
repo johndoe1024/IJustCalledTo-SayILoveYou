@@ -19,7 +19,7 @@
 namespace ip {
 
 std::error_code FsTrackProvider::ListDir(
-    std::string dir, std::vector<std::string>* files) const {
+    const std::string& dir, std::vector<std::string>* files) const {
   DIR* dp = nullptr;
   auto cleanup = CreateScopeGuard([&]() {
     if (dp) {

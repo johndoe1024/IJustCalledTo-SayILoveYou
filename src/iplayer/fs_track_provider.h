@@ -15,7 +15,7 @@ class FsTrackProvider : public ITrackProvider {
                                       std::error_code& ec) override;
 
  private:
-  std::error_code ListDir(std::string dir,
+  std::error_code ListDir(const std::string& dir,
                           std::vector<std::string>* files) const;
 
   mutable std::mutex mutex_;
