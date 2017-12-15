@@ -103,7 +103,7 @@ void Cli::Dispatch(const std::string& command, const std::string& parameters) {
       auto track = player_ctl_->GetCurrentTrackInfo(&elapsed);
       PrintTrackInfo(track, &elapsed);
     } else if (command == "remove_track") {
-      player_ctl_->RemoveTrack(std::move(parameters));
+      player_ctl_->RemoveTrack(parameters);
     } else if (command == "remove_duplicates") {
       player_ctl_->RemoveDuplicateTrack();
     } else if (command == "show_playlist" || command == "pl") {
