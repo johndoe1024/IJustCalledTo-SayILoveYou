@@ -3,7 +3,6 @@
 namespace ip {
 
 IDecoderPtr DecoderFactory::Create(const std::string& codec,
-
                                    const TrackInfo& track,
                                    CompletionCb completion_cb) const {
   std::lock_guard<std::mutex> lock(mutex_);
