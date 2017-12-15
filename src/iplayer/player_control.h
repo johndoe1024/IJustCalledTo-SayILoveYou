@@ -23,7 +23,6 @@ class PlayerControl : public IPlayerControl {
   void Stop() override;
   void Previous() override;
   void Next() override;
-  void RestartCurrentTrack() override;
   void SetRepeatTrackEnabled(bool enable) override;
   void SetRepeatPlaylistEnabled(bool enable) override;
   void SetRandomTrackEnabled(bool value) override;

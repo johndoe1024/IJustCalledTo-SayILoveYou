@@ -75,17 +75,6 @@ void PlayerControl::Previous() {
   PlayTrack(track);
 }
 
-void PlayerControl::RestartCurrentTrack() {
-  std::lock_guard<std::mutex> lock(mutex_);
-  TrackInfo track;
-  auto ec = playlist_.SeekTrack(1, Playlist::SeekWay::kCurrent, &track);
-  if (ec) {
-    StopAndSeekBegin();
-    return;
-  }
-  PlayTrack(track);
-}
-
 void PlayerControl::SetRepeatPlaylistEnabled(bool value) {
   std::lock_guard<std::mutex> lock(mutex_);
   playlist_.SetRepeatPlaylistEnabled(value);
