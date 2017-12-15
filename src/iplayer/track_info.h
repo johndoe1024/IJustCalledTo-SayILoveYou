@@ -25,7 +25,7 @@ class TrackInfo {
         number_(number),
         duration_(duration) {}
 
-  TrackInfo(TrackInfo&& o)
+  TrackInfo(TrackInfo&& o) noexcept
       : location_(std::move(o.location_)),
         codec_(std::move(o.codec_)),
         title_(std::move(o.title_)),
@@ -39,7 +39,7 @@ class TrackInfo {
         number_(o.number_),
         duration_(o.duration_) {}
 
-  TrackInfo& operator=(TrackInfo&& o) {
+  TrackInfo& operator=(TrackInfo&& o) noexcept {
     if (this == &o) {
       return *this;
     }
